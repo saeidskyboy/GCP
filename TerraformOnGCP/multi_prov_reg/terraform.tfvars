@@ -1,0 +1,11 @@
+London = "europe-west2"
+Dallas = "us-south1"
+cidr_block = "10.0.0.0/16"
+machine_type = "e2-micro"
+image = "debian-cloud/debian-11"
+google_compute_network = "my-vpc"
+auto_create_subnetworks = false
+sub1_cidr_range = "10.0.0.0/24"
+sub2_cidr_range = "10.0.1.0/24"
+credentials = "./keys.json"
+project-id = "cloud-2255"

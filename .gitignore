@@ -1,0 +1,26 @@
+# Allow .tf files (HCL configuration files)
+!*.tf
+
+# Exclude common Terraform-generated files and directories
+.terraform/*
+.terraform/providers
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+crash.log
+crash.*.log
+terraform.tfvars.json
+override.tf
+override.tf.json
+
+# Exclude common log and output files
+*.log
+*.out
+*.txt
+*.zip
+
+# Exclude other common irrelevant files
+.DS_Store
+keys.json
+.terraform/*
