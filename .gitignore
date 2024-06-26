@@ -2,7 +2,7 @@
 !*.tf
 
 # Exclude common Terraform-generated files and directories
-.terraform/*
+**/.terraform/*
 .terraform/providers
 *.tfstate
 *.tfstate.*
