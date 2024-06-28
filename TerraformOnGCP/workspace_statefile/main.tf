@@ -15,22 +15,22 @@ provider "google" {
 
 variable "machine_type" {
   description = "define what machine type for each workspace"
-  type = map(string)
+  type        = map(string)
   default = {
     "dev" = "e2-micro"
-    simu = "e2-medium"
+    simu  = "e2-medium"
     stage = "e2-small"
-    prod = "e2-standard-16"
+    prod  = "e2-standard-16"
   }
 }
 
 variable "image" {
   description = "value of image"
-  type = string
+  type        = string
 }
 
 module "machine_type" {
-  source = "./modules/vm"
+  source       = "./modules/vm"
   machine_type = lookup(var.machine_type, terraform.workspace, "e2-micro")
-  image = var.image
+  image        = var.image
 }
