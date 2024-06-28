@@ -65,6 +65,7 @@ jobs:
     defaults:
       run:
         shell: bash
+        working-directory: ./TerraformOnGCP/workspace_statefile
 
     steps:
     - name: Checkout
