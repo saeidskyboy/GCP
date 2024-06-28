@@ -42,7 +42,7 @@
 #       with:
 #         cli_config_credentials_token: 
 
-name: 'workspace_statefile'
+name: 'workspace_statefile-main'
 
 on:
   push:
