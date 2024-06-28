@@ -10,7 +10,7 @@ terraform {
 provider "google" {
   project     = "cloud-2255"
   region      = "us-central1"
-  credentials = "./keys.json"
+  #credentials = "./keys.json"
 }
 
 variable "machine_type" {
