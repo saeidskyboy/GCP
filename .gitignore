@@ -10,7 +10,7 @@
 *.tfplan.*
 crash.log
 crash.*.log
-*.tfvars
+#*.tfvars
 override.tf
 override.tf.json
 
