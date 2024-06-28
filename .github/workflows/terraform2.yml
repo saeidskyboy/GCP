@@ -48,10 +48,10 @@ on:
   push:
     branches: [ "lets-practice-actions-feature" ]
     paths:
-      - 'TerraformOnGCP/workspace_statefile/**'
+      - 'TerraformOnGCP/multi_env_module_tfvar/**'
   pull_request:
     paths:
-      - 'TerraformOnGCP/workspace_statefile/**'
+      - 'TerraformOnGCP/multi_env_module_tfvar/**'
 
 permissions:
   contents: read
@@ -65,7 +65,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./TerraformOnGCP/workspace_statefile
+        working-directory: ./TerraformOnGCP/multi_env_module_tfvar
 
     steps:
     - name: Checkout
@@ -84,12 +84,12 @@ jobs:
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Terraform Plan
+    - name: Terraform Plan -var-file=dev.tfvars
       run: terraform plan -input=false
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Terraform Apply
+    - name: Terraform Apply -var-file=dev.tfvars
       run: terraform apply -auto-approve -input=false
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
