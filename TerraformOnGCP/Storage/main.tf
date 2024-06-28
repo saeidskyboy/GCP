@@ -18,7 +18,7 @@ resource "google_storage_bucket" "test5" { # test5 here id our resource name in 
       age = 45 # it is in days
     }
     action {
-      type = "Delete" #test
+      type = "Delete" #test.
     }
   }
 
