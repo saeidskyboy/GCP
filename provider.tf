@@ -10,5 +10,5 @@ terraform {
 provider "google" {
   project     = "cloud-2255"
   region      = "us-cenetral1"
-  credentials = ${{ secrets.GCP_SA_KEY }}
+  #credentials = ${{ secrets.GCP_SA_KEY }}
 }
