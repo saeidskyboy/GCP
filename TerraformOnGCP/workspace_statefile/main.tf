@@ -8,8 +8,8 @@ terraform {
 }
 
 provider "google" {
-  project     = "cloud-2255"
-  region      = "us-central1"
+  project = "cloud-2255"
+  region  = "us-central1"
   #credentials = "./keys.json"
 }
 
