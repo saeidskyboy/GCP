@@ -44,11 +44,13 @@
 
 name: 'Terraform'
 
+# Trigger the workflow on push to the specified branch or any pull request
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "lets-practice-actions-feature" ]
   pull_request:
 
+# Set permissions for the GITHUB_TOKEN to read repository contents
 permissions:
   contents: read
 
@@ -58,42 +60,42 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
 
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    # Ensure all commands run with the Bash shell for consistency
     defaults:
       run:
         shell: bash
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
+    # Step 1: Checkout the repository code
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    # Step 2: Set up Terraform CLI and configure with Terraform Cloud API token
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v2
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    # Step 3: Initialize Terraform working directory
     - name: Terraform Init
       run: terraform init
 
-    # Checks that all Terraform configuration files adhere to a canonical format
+    # Step 4: Check Terraform files for consistent formatting
     - name: Terraform Format
       run: terraform fmt -check
       env:
           GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-    # Generates an execution plan for Terraform
+    # Step 5: Generate and show the Terraform execution plan
     - name: Terraform Plan
       run: terraform plan -input=false
       env:
           GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-      # On push to "main", build or change infrastructure according to Terraform configuration files
-      # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+    # Step 6: Apply the Terraform configuration
     - name: Terraform Apply
-     # if: github.ref == 'refs/heads/"main"' && github.event_name == 'push' #lets deactive this conditions for simpilicity for now
+      # Condition is commented out, will run on every push
+      # if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
       env:
           GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
