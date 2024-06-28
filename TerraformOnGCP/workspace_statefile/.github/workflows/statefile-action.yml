@@ -42,12 +42,16 @@
 #       with:
 #         cli_config_credentials_token: 
 
-name: 'Terraform'
+name: 'workspace_statefile'
 
 on:
   push:
     branches: [ "lets-practice-actions-feature" ]
+    paths:
+      - 'TerraformOnGCP/workspace_statefile/**'
   pull_request:
+    paths:
+      - 'TerraformOnGCP/workspace_statefile/**'
 
 permissions:
   contents: read
@@ -61,7 +65,6 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./TerraformOnGCP/workspace_statefile
 
     steps:
     - name: Checkout
