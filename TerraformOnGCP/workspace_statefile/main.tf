@@ -27,6 +27,7 @@ variable "machine_type" {
 variable "image" {
   description = "value of image"
   type = string
+  default     = "debian-cloud/debian-11"
 }
 
 module "machine_type" {
