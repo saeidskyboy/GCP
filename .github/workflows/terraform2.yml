@@ -84,12 +84,12 @@ jobs:
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Terraform Plan -var-file=dev.tfvars
+    - name: Terraform Plan -var-file=stage.tfvars
       run: terraform plan -input=false
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Terraform Apply -var-file=dev.tfvars
+    - name: Terraform Apply -var-file=stage.tfvars
       run: terraform apply -auto-approve -input=false
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
