@@ -13,7 +13,8 @@ variable "machine_type" {
 }
 
 resource "google_compute_instance" "my-vm" {
-  name         = "my-vm-22-s-${terraform.workspace}"
+  count = 4
+  name         = "my-vm-22-s-${terraform.workspace}${count.index}"
   zone         = "us-central1-a"
   machine_type = var.machine_type
   network_interface {

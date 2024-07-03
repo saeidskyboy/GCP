@@ -10,7 +10,7 @@ terraform {
 provider "google" {
   project = "cloud-2255"
   region  = "us-central1"
-  #credentials = "./keys.json"          # disable this credential if you are willing to run github action with terraform since we are using github secret token instead to run the workflow action events
+  credentials = "./keys.json"          # disable this credential if you are willing to run github action with terraform since we are using github secret token instead to run the workflow action events
 }
 
 module "vpc" {
