@@ -1,3 +1,19 @@
+# terraform {
+#   cloud {
+#     organization = "project-2255"
+#     workspaces {
+#       name = "dev"
+#     }
+#   }
+#   required_version = ">=1.1.0"
+#   required_providers {
+#     google = {
+#       source  = "hashicorp/google"
+#       version = ">= 5.34.0"
+#     }
+#   }
+# }
+
 vpc_name         = "custome-vpc-dev"
 subnet_names     = ["subnet-test1", "subnet-t2", "subnet-c1", "subnet-c7"]
 subnet_ip_ranges = ["10.0.7.0/24", "10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]

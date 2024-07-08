@@ -1,4 +1,11 @@
 terraform {
+  cloud {
+    organization = "project-2255"
+    workspaces {
+      name = "GCP"
+    }
+  }
+  required_version = ">=1.1.0"
   required_providers {
     google = {
       source  = "hashicorp/google"

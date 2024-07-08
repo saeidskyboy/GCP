@@ -1,4 +1,11 @@
 terraform {
+  cloud {
+    organization = "project-2255"
+    workspaces {
+      name = "stage" # this block will create a workspace in TFC to save the state file and set our workspace here in local
+    }
+  }
+  required_version = ">=1.1.0"
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -10,7 +17,7 @@ terraform {
 provider "google" {
   project = "cloud-2255"
   region  = "us-central1"
-  #credentials = "./keys.json"          # disable this credential if you are willing to run github action with terraform since we are using github secret token instead to run the workflow action events
+  credentials = "./keys.json"          # disable this credential if you are willing to run github action with terraform since we are using github secret token instead to run the workflow action events
 }
 
 module "vpc" {

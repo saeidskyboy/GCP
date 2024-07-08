@@ -1,3 +1,19 @@
+# terraform {
+#   cloud {
+#     organization = "project-2255"
+#     workspaces {
+#       name = "simu"
+#     }
+#   }
+#   required_version = ">=1.1.0"
+#   required_providers {
+#     google = {
+#       source  = "hashicorp/google"
+#       version = ">= 5.34.0"
+#     }
+#   }
+# }
+
 vpc_name         = "custome-vpc-simu"
 subnet_names     = ["subnet-test1-simu", "subnet-t2-simu", "subnet-h1-simu", "subnet-b7-simu"]
 subnet_ip_ranges = ["10.0.8.0/24", "10.0.9.0/24", "10.0.12.0/24", "10.0.32.0/24"]
