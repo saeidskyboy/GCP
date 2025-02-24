@@ -1,13 +1,4 @@
-# https://developer.hashicorp.com/terraform/language/backend/gcs
-
 terraform {
-    backend "gcs" {
-        bucket = "store-saeid-gke-statefiles-simu"
-        prefix = "terraform/simu/simu.tfstate"
-        credentials = "./keys.json"
-
-    }
-
   required_providers {
     google = {
       source = "hashicorp/google"

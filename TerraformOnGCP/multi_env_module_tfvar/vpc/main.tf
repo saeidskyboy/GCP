@@ -4,7 +4,7 @@ resource "google_compute_network" "vpc_network" {
 }
 
 resource "google_compute_subnetwork" "vpc_subnetwork" {
-  count         = length(var.subnet_ip_ranges)
+  count         = length(var.subnet_names)
   name          = var.subnet_names[count.index]
   region        = var.subnet_region
   network       = google_compute_network.vpc_network.id
@@ -12,8 +12,8 @@ resource "google_compute_subnetwork" "vpc_subnetwork" {
 }
 
 output "subnet_ids" {
-  value =  [for s in google_compute_subnetwork.vpc_subnetwork : s.id] # if you see warning in this line, you can ignore it and run the code, it is due to using "asterisk" which 
+  value =  google_compute_subnetwork.vpc_subnetwork[*].id # if you see warning in this line, you can ignore it and run the code, it is due to using "asterisk" which 
   # VS Code might not fully understand the expression due to its dynamic nature, Terraform itself will correctly interpret the splat expression during execution.
-  description = "list of subnet ids"
+  description = "value of subnet ids"
   
 }

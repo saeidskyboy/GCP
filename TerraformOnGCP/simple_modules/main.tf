@@ -1,23 +1,17 @@
-# terraform {
-#   required_version = ">= 1.5.0"
-#   cloud { #within this block our state file will be stored in TF cloud in vm-vpc-module workspace
-#     organization = "project-2255"
-#     workspaces {
-#       name = "vm-vpc-module"
-#     }
-#   }
-
-#   required_providers {
-#     google = {
-#       source = "hashicorp/google"
-#       version = "5.33.0"
-#     }
-#   }
-# }
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.0"
+    }
+  }
+}
 
 provider "google" {
-  project = "cloud-2255"
-  credentials = "./keys.json"
+ 
+  project     = "cloud-2255"
+  region      = "us-central1" 
+  credentials = file("./keys.json") 
 }
 
 module "vpc" {
