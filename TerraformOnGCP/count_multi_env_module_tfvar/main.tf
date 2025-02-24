@@ -1,16 +1,16 @@
-terraform {
-  required_providers {
-    google = {
+terraform{
+    required_version = ">= 1.5.0"
+    required_providers {
+        google = {
       source = "hashicorp/google"
-      version = ">= 5.34.0"
+      version = "5.33.0"
     }
   }
-}
+  }
 
 provider "google" {
-project = "cloud-2255"
-region = "us-central1"
-credentials = file("./keys.json")
+  project = "cloud-2255"
+  credentials = "./keys.json"
 }
 
 variable "vpc_name" {
@@ -32,7 +32,6 @@ variable "subnet_region" {
   type        = string
   description = "Region for the subnets (e.g., us-central1)"
 }
-
 variable "instance_names" {
   type        = list(string)
   description = "List of VM instance names"

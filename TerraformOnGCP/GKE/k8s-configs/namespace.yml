@@ -1,0 +1,51 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    iam.gke.io/gcp-service-account: "terraform@cloud-2255.iam.gserviceaccount.com"
+  name: "terraform"
+  namespace: "staging"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gcloud
+  namespace: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gcloud
+  template:
+    metadata:
+      labels:
+        app: gcloud
+    spec:
+      serviceAccountName: "terraform"
+      containers:
+      - name: gcloud
+        image: google/cloud-sdk:latest
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+        resources:
+          requests:
+            cpu: 100m
+            memory: "128Mi"
+          limits:
+            cpu: 200m
+            memory: "256Mi"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: iam.gke.io/gke-metadata-server-enabled
+                operator: In
+                values:
+                - "true"

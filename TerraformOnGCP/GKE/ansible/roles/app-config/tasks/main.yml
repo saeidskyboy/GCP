@@ -1,0 +1,19 @@
+---
+- name: Create ConfigMap for Web Application
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: webapp-config
+        namespace: application
+      data:
+        nginx.conf: |
+          server {
+            listen 80;
+            location / {
+              root /usr/share/nginx/html;
+              index index.html;
+            }
+          }

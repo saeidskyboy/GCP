@@ -1,0 +1,21 @@
+---
+- name: Deploy GKE Configurations
+  hosts: localhost
+  gather_facts: false
+  
+  pre_tasks:
+    - name: Verify gcloud authentication
+      command: gcloud auth list
+      register: auth_list
+      changed_when: false
+
+    - name: Get GKE credentials
+      command: gcloud container clusters get-credentials {{ cluster_name }} --zone {{ cluster_zone }} --project {{ project_id }}
+      changed_when: false
+
+  roles:
+    - namespace
+    - service-account
+    - argocd
+    - monitoring
+    - app-config
