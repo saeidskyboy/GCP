@@ -16,7 +16,12 @@ our pod can interact with our bucket, go to the pod ->
 in the cli -> helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 10- helm repo update, then by running -> "helm search repo nginx" we have to be able see the ingress nginx details
 11- uncomment file nginx-values and run below commands to deploy our ingress:
-helm install my-ing ingress-nginx/ingress-nginx --namespace ingress --version 4.12.0 --values k8s-configs/nginx-values.yml --create-namespace
+helm install my-ing ingress-nginx/ingress-nginx --namespace ingress-nginx --version 4.12.0 --values k8s-configs/nginx-values.yml --create-namespace
 in case you will see -> "Error: INSTALLATION FAILED: Unable to continue with install: IngressClass "nginx" in namespace "" exists and cannot be imported... --- then delete the current namespace and use --replace flag in the end ->
     - kubectl delete ingressclass nginx
     - helm install my-ing ingress-nginx/ingress-nginx --namespace ingress --version 4.12.0 --values k8s-configs/nginx-values.yml --create-namespace --replace
+12- You can watch the status by running 'kubectl get service --namespace ingress my-ing-ingress-nginx-controller --output wide --watch'
+13- kubectl apply -f k8s-configs/service.yml
+14- kubectl get ing (we have to have result with nginx-ing)
+
+15- ahve ansible installed
