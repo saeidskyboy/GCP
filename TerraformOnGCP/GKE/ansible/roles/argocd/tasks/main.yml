@@ -1,42 +1,19 @@
 ---
-- name: Install ArgoCD
-  kubernetes.core.k8s:
-    state: present
-    src: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-    namespace: argocd
+- hosts: all
+  become: true
+  tasks:
+    - name: Install Argo CD CLI
+      apt:
+        name: argocd
+        state: present
+        update_cache: yes
 
-- name: Wait for ArgoCD to be ready
-  kubernetes.core.k8s_info:
-    kind: Pod
-    namespace: argocd
-    label_selectors:
-      - app.kubernetes.io/name=argocd-server
-  register: argocd_pod
-  until: argocd_pod.resources[0].status.phase == "Running"
-  retries: 30
-  delay: 10
+    - name: Install Argo CD
+      kubectl:
+        state: present
+        src: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-- name: Configure ArgoCD Application
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: argoproj.io/v1alpha1
-      kind: Application
-      metadata:
-        name: webserver-app
-        namespace: argocd
-      spec:
-        project: default
-        source:
-          repoURL: "{{ github_repo }}"
-          targetRevision: "{{ github_branch }}"
-          path: GKE  # path of k8s manifests - directory
-        destination:
-          server: https://kubernetes.default.svc
-          namespace: application
-        syncPolicy:
-          automated:
-            prune: true
-            selfHeal: true
-          syncOptions:
-            - CreateNamespace=true
+    - name: Install some_package
+      apt:
+        name: some_package
+        state: present

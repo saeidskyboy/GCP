@@ -24,4 +24,4 @@ in case you will see -> "Error: INSTALLATION FAILED: Unable to continue with ins
 13- kubectl apply -f k8s-configs/service.yml
 14- kubectl get ing (we have to have result with nginx-ing)
 
-15- ahve ansible installed
+15- ahve ansible installedCID

@@ -1,0 +1,10 @@
+---
+- name: Create Namespaces
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ item }}"
+  loop: "{{ namespaces }}"

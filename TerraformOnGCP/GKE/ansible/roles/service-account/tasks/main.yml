@@ -1,0 +1,10 @@
+---
+- name: Create service account
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: "{{ sa_name }}"
+        namespace: "{{ namespace }}"
