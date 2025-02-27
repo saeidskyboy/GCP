@@ -34,11 +34,18 @@ variable "machine_type" {
 variable "image" {
   description = "value of image"
   type        = string
+<<<<<<< HEAD
   default     = "debian-cloud/debian-11"
+=======
+>>>>>>> workflow
 }
 
 module "machine_type" {
   source       = "./modules/vm"
   machine_type = lookup(var.machine_type, terraform.workspace, "e2-micro")
   image        = var.image
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> workflow

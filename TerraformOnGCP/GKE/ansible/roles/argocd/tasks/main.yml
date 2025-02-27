@@ -1,0 +1,16 @@
+    - block:
+        - name: Install Argo CD CLI
+          apt:
+            name: argocd
+            state: present
+            update_cache: yes
+
+        - name: Install Argo CD
+          kubectl:
+            state: present
+            src: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+        - name: Install some_package
+          apt:
+            name: some_package
+            state: present
