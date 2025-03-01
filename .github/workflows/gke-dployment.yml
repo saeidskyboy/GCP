@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - "main"
-    paths:
-      - 'TerraformOnGCP/GKE/**'
-  pull_request:
-    paths:
-      - 'TerraformOnGCP/GKE/**'
+#     paths:
+#       - 'TerraformOnGCP/GKE/**'
+#   pull_request:
+#     paths:
+#       - 'TerraformOnGCP/GKE/**'
 
 jobs:
   deploy-infrastructure:
