@@ -3,7 +3,12 @@ name: Deploy GKE Cluster
 on:
   push:
     branches:
-      - main
+      - "main"
+    paths:
+      - 'TerraformOnGCP/GKE/**'
+  pull_request:
+    paths:
+      - 'TerraformOnGCP/GKE/**'
 
 jobs:
   deploy-infrastructure:
@@ -11,6 +16,12 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+
+    defaults:
+        run:
+            shell: bash
+            working-directory: ./TerraformOnGCP/GKE
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,18 +37,15 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Unset GOOGLE_APPLICATION_CREDENTIALS
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ''
-        run: echo ''
-
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
+        with:
+            cli_config_credentials_token: ${{ secrets.GCP_SA_KEY }}
 
       - name: Initialize Terraform
         run: terraform init
-        working-directory: TerraformOnGCP/GKE
 
       - name: Apply Terraform configuration
         run: terraform apply -auto-approve
-        working-directory: TerraformOnGCP/GKE
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
