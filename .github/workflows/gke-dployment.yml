@@ -25,9 +25,9 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+
       - name: Unset GOOGLE_APPLICATION_CREDENTIALS
-        run: |
-            unset GOOGLE_APPLICATION_CREDENTIALS
+        run: echo "" > $GOOGLE_APPLICATION_CREDENTIALS
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
