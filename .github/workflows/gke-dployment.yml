@@ -30,7 +30,10 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Set service account key environment variable
-        run: printf '%s' "${{ secrets.GCP_SA_KEY }}" > gcp-sa-key.json
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS<<EOF" >> $GITHUB_ENV
+          echo "${{ secrets.GCP_SA_KEY }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Initialize Terraform
         run: terraform init
