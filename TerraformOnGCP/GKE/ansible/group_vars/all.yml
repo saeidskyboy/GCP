@@ -8,7 +8,7 @@ service_account: terraform@cloud-2255.iam.gserviceaccount.com
 
 # Namespaces
 namespaces:
-  - argocd
+  - default
   - application
   - monitoring
 

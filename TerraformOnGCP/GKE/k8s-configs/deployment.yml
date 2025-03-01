@@ -19,6 +19,9 @@ spec:
         image: nginx:1.14.2
         ports:
         - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
         resources:
           requests:
             cpu: 100m
@@ -26,6 +29,10 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
       tolerations:
       - key: instance_type
         value: spot
@@ -51,3 +58,21 @@ spec:
                   values:
                   - nginx
               topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  argocd.conf: |
+    server {
+      listen 80;
+      server_name 34.66.129.79;
+
+      location /argocd {
+        proxy_pass http://argocd-server:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+      }
+    }
