@@ -4,6 +4,6 @@ terraform {
   backend "gcs" {
     bucket = "store-saeid-gke-statefiles-simu"
     prefix = "gke/terraform.tfstate"
-    credentials = "./keys.json"
+    credentials = env("GOOGLE_APPLICATION_CREDENTIALS")
   }
 }

@@ -24,10 +24,13 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }} 
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
+
+      - name: Set service account key environment variable
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GCP_SA_KEY }}" >> $GITHUB_ENV
 
       - name: Initialize Terraform
         run: terraform init
