@@ -48,6 +48,17 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           install_components: gke-gcloud-auth-plugin
+
+      # --- DEBUGGING STEPS (Add These) ---
+      - name: Verify Service Account Authentication (gcloud)
+        run: |
+          gcloud auth list
+          echo "Current project: $(gcloud config get-value project)"
+
+      - name: Verify IAM Permissions (gcloud)
+        run: |
+          gcloud projects get-iam-policy ${{ secrets.GCP_PROJECT_ID }} --filter="bindings.members:serviceAccount:$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
+      # --- END DEBUGGING STEPS ---
    
       - name: Configure gcloud and kubectl
         run: |
@@ -57,8 +68,8 @@ jobs:
             gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
   
 
-      - name: Apply Namespace (Argo CD)
-        run: kubectl apply -f k8s-configs/argocd-ns.yml
+      - name: Create Argo CD Namespace
+        run: kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
         working-directory: ./TerraformOnGCP/GKE
 
       - name: Deploy Nginx
