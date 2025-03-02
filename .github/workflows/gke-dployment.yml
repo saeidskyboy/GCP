@@ -37,10 +37,13 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
+      - name: Write credentials to file
+        run: echo $GCP_SA_KEY > credentials.json
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         env:
-            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+            GOOGLE_APPLICATION_CREDENTIALS: ./credentials.json
 
       - name: Initialize Terraform
         run: terraform init -reconfigure
