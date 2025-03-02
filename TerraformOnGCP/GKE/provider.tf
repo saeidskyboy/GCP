@@ -4,8 +4,6 @@ terraform {
     backend "gcs" {
         bucket = "store-saeid-gke-statefiles-simu"
         prefix = "terraform/simu/simu.tfstate"
-        credentials = "./keys.json"
-
     }
 
   required_providers {
@@ -19,5 +17,4 @@ terraform {
 provider "google" {
   project     = "cloud-2255"
   region      = "us-cenetral1"
-  credentials = "./keys.json"
   }
