@@ -43,7 +43,7 @@ jobs:
             GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
       - name: Initialize Terraform
-        run: terraform init
+        run: terraform init -reconfigure
 
       - name: Apply Terraform configuration
         run: terraform apply -auto-approve
