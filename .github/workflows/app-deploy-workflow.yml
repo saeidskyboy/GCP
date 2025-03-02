@@ -1,0 +1,101 @@
+name: Deploy Application
+
+on:
+  workflow_run:
+    workflows: ["Deploy GKE Cluster"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }} # Your service account key JSON
+          project_id: ${{ secrets.GCP_PROJECT_ID }} # Your GCP Project ID
+
+      - name: Configure gcloud and kubectl
+        run: |
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+          gcloud container clusters get-credentials $(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_name) --region $(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)
+          kubectl get nodes
+
+      - name: Apply Namespace (Argo CD)
+        run: kubectl apply -f k8s-configs/argocd-ns.yml
+
+      - name: Deploy Nginx
+        run: kubectl apply -f k8s-configs/deployment.yml
+
+      - name: Deploy LoadBalancer and Ingress
+        run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
+
+        # we will uncomment this step if we would like have customize nginx/argocd config and create a config map for it (this file also exist and we can uncomment and use it)
+    #   - name: Wait for LoadBalancer IPs
+    #     id: get_lb_ips
+    #     run: |
+    #       get_lb_ip() {
+    #         local service_name=$1
+    #         local namespace=$2
+    #         local attempts=30
+    #         local delay=10
+    #         for i in $(seq 1 $attempts); do
+    #           ip=$(kubectl get service "$service_name" -n "$namespace" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    #           if [[ -n "$ip" ]]; then
+    #             echo "$ip"
+    #             return 0
+    #           fi
+    #           echo "Waiting for LoadBalancer IP for $service_name in $namespace (attempt $i/$attempts)..."
+    #           sleep "$delay"
+    #         done
+    #         echo "ERROR: Failed to get LoadBalancer IP for $service_name in $namespace after $attempts attempts." >&2
+    #         exit 1
+    #       }
+    #       ARGOCD_LB_IP=$(get_lb_ip argocd-server-lb argocd)
+    #       NGINX_LB_IP=$(get_lb_ip nginx-lb default)
+    #       echo "ARGOCD_LB_IP=$ARGOCD_LB_IP" >> "$GITHUB_OUTPUT"
+    #       echo "NGINX_LB_IP=$NGINX_LB_IP" >> "$GITHUB_OUTPUT"
+
+    #   - name: Create ConfigMaps
+    #     id: create_configmaps
+    #     run: |
+    #       sed "s|\${NGINX_LB_IP}|${{ steps.get_lb_ips.outputs.NGINX_LB_IP }}|g; s|\${ARGOCD_LB_IP}|${{ steps.get_lb_ips.outputs.ARGOCD_LB_IP }}|g" k8s-configs/config-maps.yml | kubectl apply -f -
+
+      # --- Ansible Setup and Execution ---
+      - name: Create Ansible Inventory Directory
+        run: mkdir -p ansible/inventory  # make sure this directory is already exist in your local when you wanna commit and push the code to GH
+
+      - name: Configure Dynamic Inventory (gcp.yml)
+        run: |
+          cat <<EOF > ansible/inventory/gcp.yml
+          plugin: google.cloud.gcp_compute
+          projects:
+            - ${{ secrets.GCP_PROJECT_ID }}  # Use the project ID secret
+          regions:
+            - $(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)  # Get region from Terraform
+          filters: []
+          auth_kind: serviceaccount
+          service_account_file: ${{ steps.auth.outputs.credentials_file }} # Use the temporary credentials file
+          EOF
+        shell: bash
+
+      - name: Install google.cloud collection
+        run: ansible-galaxy collection install google.cloud
+
+      - name: Install Argo CD with Helm (Ansible)
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: ansible/playbooks/install-argocd-with-helm.yml
+          options: |
+            --extra-vars "argocd_namespace=argocd"
+            --inventory ./ansible/inventory/gcp.yml  # Point to the dynamically created inventory

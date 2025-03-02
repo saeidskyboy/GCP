@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -8,20 +7,17 @@ spec:
   replicas: 3
   selector:
     matchLabels:
-      app: nginx
+      app.kubernetes.io/name: nginx
   template:
     metadata:
       labels:
-        app: nginx
+        app.kubernetes.io/name: nginx
     spec:
       containers:
       - name: nginx
-        image: nginx:1.14.2
+        image: nginx:stable
         ports:
         - containerPort: 80
-        volumeMounts:
-        - name: nginx-config
-          mountPath: /etc/nginx/conf.d
         resources:
           requests:
             cpu: 100m
@@ -29,15 +25,12 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
-      volumes:
-      - name: nginx-config
-        configMap:
-          name: nginx-config
+      # Tolerations and Affinity for the spot-pool
       tolerations:
-      - key: instance_type
-        value: spot
-        effect: NoSchedule
-        operator: Equal
+      - key: "instance_type"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -47,32 +40,14 @@ spec:
                 operator: In
                 values:
                 - devops
-        podAntiAffinity:
+        podAntiAffinity:  # Keep this for better pod distribution
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 1
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
-                - key: app
+                - key: app.kubernetes.io/name
                   operator: In
                   values:
                   - nginx
               topologyKey: kubernetes.io/hostname
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nginx-config
-data:
-  argocd.conf: |
-    server {
-      listen 80;
-      server_name 34.66.129.79;
-
-      location /argocd {
-        proxy_pass http://argocd-server:80;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-      }
-    }

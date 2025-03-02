@@ -1,0 +1,20 @@
+# # ConfigMap for Argo CD
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: argocd-cm
+#   namespace: argocd
+# data:
+#   url: http://${ARGOCD_LB_IP}  # Use the Argo CD LoadBalancer IP
+#   argocdServerUrl: http://${ARGOCD_LB_IP}/argocd
+
+# ---
+
+# # ConfigMap for Nginx
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: nginx-cm
+#   namespace: default
+# data:
+#   url: http://${NGINX_LB_IP}  # Use the Nginx LoadBalancer IP
