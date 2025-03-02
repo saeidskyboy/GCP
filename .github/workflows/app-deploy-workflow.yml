@@ -59,12 +59,15 @@ jobs:
 
       - name: Apply Namespace (Argo CD)
         run: kubectl apply -f k8s-configs/argocd-ns.yml
+        working-directory: ./TerraformOnGCP/GKE
 
       - name: Deploy Nginx
         run: kubectl apply -f k8s-configs/deployment.yml
+        working-directory: ./TerraformOnGCP/GKE
 
       - name: Deploy LoadBalancer and Ingress
         run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
+        working-directory: ./TerraformOnGCP/GKE
 
         # we will uncomment this step if we would like have customize nginx/argocd config and create a config map for it (this file also exist and we can uncomment and use it)
     #   - name: Wait for LoadBalancer IPs
@@ -100,6 +103,7 @@ jobs:
       # --- Ansible Setup and Execution ---
       - name: Create Ansible Inventory Directory
         run: mkdir -p ansible/inventory  # make sure this directory is already exist in your local when you wanna commit and push the code to GH
+        working-directory: ./TerraformOnGCP/GKE
 
       - name: Configure Dynamic Inventory (gcp.yml)
         run: |
@@ -114,14 +118,16 @@ jobs:
           service_account_file: ${{ steps.auth.outputs.credentials_file }} # Use the temporary credentials file
           EOF
         shell: bash
+        working-directory: ./TerraformOnGCP/GKE
 
       - name: Install google.cloud collection
         run: ansible-galaxy collection install google.cloud
+        working-directory: ./TerraformOnGCP/GKE
 
       - name: Install Argo CD with Helm (Ansible)
         uses: dawidd6/action-ansible-playbook@v2
         with:
-          playbook: ansible/playbooks/install-argocd-with-helm.yml
+          playbook: ./TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
-            --inventory ./ansible/inventory/gcp.yml  # Point to the dynamically created inventory
+            --inventory ./TerraformOnGCP/GKE/ansible/inventory/gcp.yml  # Point to the dynamically created inventory
