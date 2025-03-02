@@ -72,7 +72,7 @@ jobs:
           kubectl config current-context #check current context
 
       - name: Create Argo CD Namespace
-        run: kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+        run: kubectl create namespace argocd
         working-directory: ./TerraformOnGCP/GKE
 
       - name: Deploy Nginx
