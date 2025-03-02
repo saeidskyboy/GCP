@@ -48,14 +48,14 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           install_components: gke-gcloud-auth-plugin
-      - name: Activate Service Account
-        run: gcloud auth activate-service-account --key-file=${{ steps.auth.outputs.credentials_file }}
-    
+   
       - name: Configure gcloud and kubectl
         run: |
-          gcloud config set project cloud-2255  # Hardcoded Project ID
-          gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
-          kubectl get nodes
+            gcloud config set project cloud-2255
+            gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
+            rm -rf ~/.kube  # Completely remove the existing kubeconfig
+            gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255  # Regenerate the config
+            kubectl get nodes
 
       - name: Apply Namespace (Argo CD)
         run: kubectl apply -f k8s-configs/argocd-ns.yml
