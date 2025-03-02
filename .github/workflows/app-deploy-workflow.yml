@@ -34,13 +34,19 @@ jobs:
         working-directory: ./TerraformOnGCP/GKE  # Initialize in the Terraform directory
 
     # --- Now use terraform output ---
+# to have dynamic connection to our cluster we can use below blocks
+    #   - name: Get Cluster Name
+    #     id: get_cluster_name
+    #     run: echo "cluster_name=$(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_name)" >> "$GITHUB_OUTPUT"
+
+    #   - name: Get Cluster Region
+    #     id: get_cluster_region
+    #     run: echo "cluster_region=$(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)" >> "$GITHUB_OUTPUT"
 
       - name: Configure gcloud and kubectl
         run: |
-          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-          CLUSTER_NAME=$(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_name)
-          CLUSTER_REGION=$(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)
-          gcloud container clusters get-credentials "$CLUSTER_NAME" --region "$CLUSTER_REGION"
+          gcloud config set project cloud-2255  # Hardcoded Project ID
+          gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
           kubectl get nodes
 
       - name: Apply Namespace (Argo CD)
