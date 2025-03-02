@@ -38,7 +38,9 @@ jobs:
       - name: Configure gcloud and kubectl
         run: |
           gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-          gcloud container clusters get-credentials $(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_name) --region $(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)
+          CLUSTER_NAME=$(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_name)
+          CLUSTER_REGION=$(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)
+          gcloud container clusters get-credentials "$CLUSTER_NAME" --region "$CLUSTER_REGION"
           kubectl get nodes
 
       - name: Apply Namespace (Argo CD)
