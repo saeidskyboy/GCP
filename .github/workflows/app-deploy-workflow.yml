@@ -53,9 +53,9 @@ jobs:
         run: |
             gcloud config set project cloud-2255
             gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
-            rm -rf ~/.kube  # Completely remove the existing kubeconfig
-            gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255  # Regenerate the config
-            kubectl get nodes
+            rm -rf ~/.kube
+            gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
+  
 
       - name: Apply Namespace (Argo CD)
         run: kubectl apply -f k8s-configs/argocd-ns.yml
