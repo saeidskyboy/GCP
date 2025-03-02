@@ -47,7 +47,9 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          install_components: gke-gcloud-auth-plugin  
+          install_components: gke-gcloud-auth-plugin
+      - name: Activate Service Account
+        run: gcloud auth activate-service-account --key-file=${{ steps.auth.outputs.credentials_file }}
     
       - name: Configure gcloud and kubectl
         run: |
