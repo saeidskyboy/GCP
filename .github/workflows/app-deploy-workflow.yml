@@ -65,11 +65,9 @@ jobs:
           gcloud config set project cloud-2255
           gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
           rm -rf ~/.kube
+          rm -rf ~/.config/gcloud
           gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
-          # Explicitly set the kubectl context (add these lines)
-          kubectl config get-contexts  # List available contexts (for debugging)
-          kubectl config use-context gke_cloud-2255_us-central1-f_gke-cluster  # USE THE CORRECT CONTEXT NAME from the previous command's output
-          kubectl config current-context #check current context
+          kubectl create namespace argocd
 
       - name: Create Argo CD Namespace
         run: kubectl create namespace argocd
