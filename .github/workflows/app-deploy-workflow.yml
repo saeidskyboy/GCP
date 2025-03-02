@@ -43,6 +43,12 @@ jobs:
     #     id: get_cluster_region
     #     run: echo "cluster_region=$(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)" >> "$GITHUB_OUTPUT"
 
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          install_components: gke-gcloud-auth-plugin  
+    
       - name: Configure gcloud and kubectl
         run: |
           gcloud config set project cloud-2255  # Hardcoded Project ID
