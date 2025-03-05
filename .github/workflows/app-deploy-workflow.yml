@@ -22,26 +22,9 @@ jobs:
         id: 'auth'
         uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }} # Your service account key JSON
-          project_id: ${{ secrets.GCP_PROJECT_ID }} # Your GCP Project ID
-
-    # --- Set up Terraform (for reading state) ---
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-
-      - name: Initialize Terraform
-        run: terraform init
-        working-directory: ./TerraformOnGCP/GKE  # Initialize in the Terraform directory
-
-    # --- Now use terraform output ---
-# to have dynamic connection to our cluster we can use below blocks
-    #   - name: Get Cluster Name
-    #     id: get_cluster_name
-    #     run: echo "cluster_name=$(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_name)" >> "$GITHUB_OUTPUT"
-
-    #   - name: Get Cluster Region
-    #     id: get_cluster_region
-    #     run: echo "cluster_region=$(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)" >> "$GITHUB_OUTPUT"
+          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}  # Updated secret name
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          # credentials_file: ${{ secrets.GCP_ACCESS_KEY }} # If you define this, then in dynamic inventory you can use steps.auth.outputs.credentials_file
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
@@ -49,35 +32,18 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           install_components: gke-gcloud-auth-plugin
 
-      # --- DEBUGGING STEPS (Add These) ---
-      - name: Verify Service Account Authentication (gcloud)
-        run: |
-          gcloud auth list
-          echo "Current project: $(gcloud config get-value project)"
-
-      - name: Verify IAM Permissions (gcloud)
-        run: |
-          gcloud projects get-iam-policy ${{ secrets.GCP_PROJECT_ID }} --filter="bindings.members:serviceAccount:$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
-      # --- END DEBUGGING STEPS ---
-   
-      - name: Verify gke-gcloud-auth-plugin Installation  # ADDED VERIFICATION
-        run: which gke-gcloud-auth-plugin
-
       - name: Configure gcloud and kubectl
         run: |
-          echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp_sa_key.json # write credential file - for testing
-          gcloud auth activate-service-account --key-file=/tmp/gcp_sa_key.json # Explicit activation - for testing only
           gcloud config set project cloud-2255
           gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
           rm -rf ~/.kube
           rm -rf ~/.config/gcloud
           gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
-          kubectl get clusterrolebindings  # Requires cluster-admin
-          kubectl get pods -A # Check cluster level access
-          kubectl create namespace argocd # Create namespace
-          rm /tmp/gcp_sa_key.json # Remove credential file
+          kubectl get clusterrolebindings
+          kubectl get pods -A
+          kubectl create namespace argocd
 
-      - name: Create Argo CD Namespace
+      - name: Apply Namespace (Argo CD) #Not required if you have create namespace
         run: kubectl create namespace argocd
         working-directory: ./TerraformOnGCP/GKE
 
@@ -122,7 +88,7 @@ jobs:
 
       # --- Ansible Setup and Execution ---
       - name: Create Ansible Inventory Directory
-        run: mkdir -p ansible/inventory  # make sure this directory is already exist in your local when you wanna commit and push the code to GH
+        run: mkdir -p ansible/inventory
         working-directory: ./TerraformOnGCP/GKE
 
       - name: Configure Dynamic Inventory (gcp.yml)
@@ -130,12 +96,12 @@ jobs:
           cat <<EOF > ansible/inventory/gcp.yml
           plugin: google.cloud.gcp_compute
           projects:
-            - ${{ secrets.GCP_PROJECT_ID }}  # Use the project ID secret
+            - ${{ secrets.GCP_PROJECT_ID }}
           regions:
-            - $(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)  # Get region from Terraform
+            - $(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)
           filters: []
           auth_kind: serviceaccount
-          service_account_file: ${{ steps.auth.outputs.credentials_file_path }} # Use the temporary credentials file
+          service_account_file: ${{ steps.auth.outputs.credentials_file_path }} # Use the temporary credentials file path
           EOF
         shell: bash
         working-directory: ./TerraformOnGCP/GKE
@@ -150,4 +116,4 @@ jobs:
           playbook: ./TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
-            --inventory ./TerraformOnGCP/GKE/ansible/inventory/gcp.yml  # Point to the dynamically created inventory
+            --inventory ./TerraformOnGCP/GKE/ansible/inventory/gcp.yml
