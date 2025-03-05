@@ -39,12 +39,14 @@ jobs:
 
       - name: Get Cluster Name
         id: get_cluster_name
-        run: echo "cluster_name=$(terraform output -raw cluster_name)" >> "$GITHUB_OUTPUT"
+        run: |
+          terraform output -raw cluster_name >> "$GITHUB_OUTPUT"
         working-directory: ./TerraformOnGCP/GKE
 
       - name: Get Cluster Region
         id: get_cluster_region
-        run: echo "cluster_region=$(terraform output -raw cluster_region)" >> "$GITHUB_OUTPUT"
+        run: |
+          terraform output -raw cluster_region >> "$GITHUB_OUTPUT"
         working-directory: ./TerraformOnGCP/GKE
       # --- End Get Cluster Info ---
 

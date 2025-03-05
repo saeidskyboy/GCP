@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - "main"
-#     paths:
-#       - 'TerraformOnGCP/GKE/**'
-#   pull_request:
-#     paths:
-#       - 'TerraformOnGCP/GKE/**'
+    paths:
+      - 'TerraformOnGCP/GKE/**'
+  workflow_dispatch:
 
 jobs:
   deploy-infrastructure:
@@ -18,9 +16,9 @@ jobs:
       id-token: 'write'
 
     defaults:
-        run:
-            shell: bash
-            working-directory: ./TerraformOnGCP/GKE
+      run:
+        shell: bash
+        working-directory: ./TerraformOnGCP/GKE
 
     steps:
       - name: Checkout code
@@ -30,7 +28,8 @@ jobs:
         id: 'auth'
         uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}  # Updated secret name
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
@@ -39,10 +38,14 @@ jobs:
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
-        env:
-            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        # No need for GOOGLE_APPLICATION_CREDENTIALS if you are using google-github-actions/auth
+        # env:
+        #  GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_ACCESS_KEY }}
 
-  # Check if the cluster exists
+      - name: Initialize Terraform
+        run: terraform init
+
+      # Check if the cluster exists
       - name: Check Cluster Existence
         id: check_cluster
         run: |
@@ -55,17 +58,13 @@ jobs:
             echo "Cluster does not exist."
             echo "cluster_exists=false" >> "$GITHUB_OUTPUT"
           fi
-        continue-on-error: true # Important: Continue even if describe fails (e.g., first run)
+        continue-on-error: true
 
+      - name: Terraform Plan
+        if: steps.check_cluster.outputs.cluster_exists != 'true'
+        run: terraform plan -out=tfplan
+        id: plan
 
-      - name: Initialize Terraform
-        run: terraform init
-
-      - name: Apply Terraform configuration
-        run: terraform apply -auto-approve
-
-      - name: Test kubectl Access After Creation  # ADDED FOR TESTING 
+      - name: Terraform Apply
         if: (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && steps.check_cluster.outputs.cluster_exists != 'true'
-        run: |
-          gcloud container clusters get-credentials $(terraform output -raw cluster_name) --region $(terraform output -raw cluster_region) --project ${{ secrets.GCP_PROJECT_ID }}
-          kubectl get ns
+        run: terraform apply -auto-approve tfplan
