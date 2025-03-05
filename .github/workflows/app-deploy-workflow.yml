@@ -60,10 +60,6 @@ jobs:
           kubectl get clusterrolebindings  # Requires cluster-admin
           kubectl get pods -A  # Check cluster-level access
 
-      - name: Create Argo CD Namespace
-        run: kubectl create namespace argocd
-        working-directory: ./TerraformOnGCP/GKE
-
       - name: Deploy Nginx
         run: kubectl apply -f k8s-configs/deployment.yml
         working-directory: ./TerraformOnGCP/GKE

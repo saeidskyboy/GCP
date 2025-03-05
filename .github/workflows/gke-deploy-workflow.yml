@@ -51,7 +51,7 @@ jobs:
         run: |
           CLUSTER_NAME=$(terraform output -raw cluster_name)
           CLUSTER_REGION=$(terraform output -raw cluster_region)
-          if gcloud container clusters describe "$CLUSTER_NAME" --region "$CLUSTER_REGION" --format="value(name)" &> /dev/null; then
+          if gcloud container clusters list --regions "$CLUSTER_REGION" --filter="name=$CLUSTER_NAME" --format="value(name)" | grep -q "$CLUSTER_NAME"; then
             echo "Cluster already exists."
             echo "cluster_exists=true" >> "$GITHUB_OUTPUT"
           else
