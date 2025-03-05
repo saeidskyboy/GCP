@@ -22,9 +22,8 @@ jobs:
         id: 'auth'
         uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}  # Updated secret name
+          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          # credentials_file: ${{ secrets.GCP_ACCESS_KEY }} # If you define this, then in dynamic inventory you can use steps.auth.outputs.credentials_file
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
@@ -32,18 +31,34 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           install_components: gke-gcloud-auth-plugin
 
+      # --- Get Cluster Info from Terraform ---
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Get Cluster Name
+        id: get_cluster_name
+        run: echo "cluster_name=$(terraform output -raw cluster_name)" >> "$GITHUB_OUTPUT"
+        working-directory: ./TerraformOnGCP/GKE
+
+      - name: Get Cluster Region
+        id: get_cluster_region
+        run: echo "cluster_region=$(terraform output -raw cluster_region)" >> "$GITHUB_OUTPUT"
+        working-directory: ./TerraformOnGCP/GKE
+      # --- End Get Cluster Info ---
+
       - name: Configure gcloud and kubectl
         run: |
-          gcloud config set project cloud-2255
-          gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+          gcloud container clusters get-credentials "${{ steps.get_cluster_name.outputs.cluster_name }}" --region "${{ steps.get_cluster_region.outputs.cluster_region }}" --project ${{ secrets.GCP_PROJECT_ID }}
           rm -rf ~/.kube
-          rm -rf ~/.config/gcloud
-          gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
-          kubectl get clusterrolebindings
-          kubectl get pods -A
-          kubectl create namespace argocd
+          rm -rf ~/.config/gcloud # clean up to avoid any conflicts.
+          gcloud container clusters get-credentials "${{ steps.get_cluster_name.outputs.cluster_name }}" --region "${{ steps.get_cluster_region.outputs.cluster_region }}" --project ${{ secrets.GCP_PROJECT_ID }}
+          kubectl get clusterrolebindings  # Requires cluster-admin
+          kubectl get pods -A  # Check cluster-level access
 
-      - name: Apply Namespace (Argo CD) #Not required if you have create namespace
+      - name: Create Argo CD Namespace
         run: kubectl create namespace argocd
         working-directory: ./TerraformOnGCP/GKE
 
@@ -98,10 +113,10 @@ jobs:
           projects:
             - ${{ secrets.GCP_PROJECT_ID }}
           regions:
-            - $(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)
+            - $(terraform output -raw cluster_region) # now you can have dynamic region
           filters: []
           auth_kind: serviceaccount
-          service_account_file: ${{ steps.auth.outputs.credentials_file_path }} # Use the temporary credentials file path
+          service_account_file: ${{ steps.auth.outputs.credentials_file_path }}
           EOF
         shell: bash
         working-directory: ./TerraformOnGCP/GKE
