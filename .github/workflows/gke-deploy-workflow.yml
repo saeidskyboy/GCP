@@ -64,7 +64,7 @@ jobs:
       - name: Apply Terraform configuration
         run: terraform apply -auto-approve
 
-      - name: Test kubectl Access After Creation  # ADDED FOR TESTING
+      - name: Test kubectl Access After Creation  # ADDED FOR TESTING 
         if: (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && steps.check_cluster.outputs.cluster_exists != 'true'
         run: |
           gcloud container clusters get-credentials $(terraform output -raw cluster_name) --region $(terraform output -raw cluster_region) --project ${{ secrets.GCP_PROJECT_ID }}
