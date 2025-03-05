@@ -38,4 +38,5 @@ resource "google_container_cluster" "gke-cluster" {
       enable_private_endpoint = false # if we have a VPN setup to connect to k8s cluster we need set this option to "true"    
     master_ipv4_cidr_block = "172.16.0.0/28" #this CIDR range is used for the k8s control plane and since google is managing the control plane in their network and establish a peering connection to our VPC we dont need to specify it
     }
+    deletion_protection = false
 }

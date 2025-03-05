@@ -127,7 +127,7 @@ jobs:
             - $(terraform -chdir="./TerraformOnGCP/GKE" output -raw cluster_region)  # Get region from Terraform
           filters: []
           auth_kind: serviceaccount
-          service_account_file: ${{ steps.auth.outputs.credentials_file }} # Use the temporary credentials file
+          service_account_file: ${{ steps.auth.outputs.credentials_file_path }} # Use the temporary credentials file
           EOF
         shell: bash
         working-directory: ./TerraformOnGCP/GKE
