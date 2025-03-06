@@ -33,25 +33,17 @@ jobs:
 
       - name: Configure gcloud and kubectl
         run: |
-            gcloud config set project $GCP_PROJECT
+            gcloud auth activate-service-account --key-file=$GITHUB_WORKSPACE/gha-creds-eb30bdd8b2eee6a1.json
             gcloud config set project $GCP_PROJECT
             gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project $GCP_PROJECT
-            kubectl --kubeconfig=/home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json config set-context --current --namespace=default
-            kubectl --kubeconfig=/home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json config set-credentials gke_${GCP_PROJECT}_us-central1-f_gke-cluster --exec-command=gcloud --exec-namespace=kubernetes.io --exec-api-version=client.authentication.k8s.io/v1alpha1 --exec-arg=--command=gke-gcloud-auth-plugin --exec-arg=-- --exec-arg=get-token --exec-env=GOOGLE_APPLICATION_CREDENTIALS=/home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
+            kubectl config set-context --current --namespace=default
+            kubectl config set-credentials gke_$GCP_PROJECT_us-central1-f_gke-cluster --exec-command=gcloud --exec-namespace=kubernetes.io --exec-api-version=client.authentication.k8s.io/v1alpha1 --exec-arg=--command=gke-gcloud-auth-plugin --exec-arg=-- --exec-arg=get-token --exec-env=GOOGLE_APPLICATION_CREDENTIALS=$GITHUB_WORKSPACE/gha-creds-eb30bdd8b2eee6a1.json
             kubectl get clusterrolebindings
             kubectl get pods -A
         shell: bash
         env:
-            CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: /home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
-            GOOGLE_APPLICATION_CREDENTIALS: /home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
-            GOOGLE_GHA_CREDS_PATH: /home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
-            CLOUDSDK_CORE_PROJECT: $GCP_PROJECT
-            CLOUDSDK_PROJECT: $GCP_PROJECT
-            GCLOUD_PROJECT: $GCP_PROJECT
             GCP_PROJECT: $GCP_PROJECT
-            GOOGLE_CLOUD_PROJECT: $GCP_PROJECT
-            CLOUDSDK_METRICS_ENVIRONMENT: github-actions-setup-gcloud
-            CLOUDSDK_METRICS_ENVIRONMENT_VERSION: 2.1.2
+            GOOGLE_APPLICATION_CREDENTIALS: $GITHUB_WORKSPACE/gha-creds-eb30bdd8b2eee6a1.json
 
       - name: Create Argo CD Namespace
         run: kubectl create namespace argocd
