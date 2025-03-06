@@ -1,11 +1,11 @@
 name: Deploy GKE Cluster
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - 'TerraformOnGCP/GKE/**'
+  # push:
+  #   branches:
+  #     - "main"
+  #   paths:
+  #     - 'TerraformOnGCP/GKE/**'
   workflow_dispatch:
 
 jobs:
