@@ -33,15 +33,25 @@ jobs:
 
       - name: Configure gcloud and kubectl
         run: |
-            gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-            gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project ${{ secrets.GCP_PROJECT_ID }}
-            kubectl config set-context --current --namespace=default
-            kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.cmd-args --set="config config-helper --format=json"
-            kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.cmd-path --set="$(which gke-gcloud-auth-plugin)"
-            kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.expiry-key --set='{.credential.token_expiry}'
-            kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.token-key --set='{.credential.access_token}'
-            kubectl config set users.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.name "gcp"
+            gcloud config set project $GCP_PROJECT
+            gcloud config set project $GCP_PROJECT
+            gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project $GCP_PROJECT
+            kubectl --kubeconfig=/home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json config set-context --current --namespace=default
+            kubectl --kubeconfig=/home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json config set-credentials gke_${GCP_PROJECT}_us-central1-f_gke-cluster --exec-command=gcloud --exec-namespace=kubernetes.io --exec-api-version=client.authentication.k8s.io/v1alpha1 --exec-arg=--command=gke-gcloud-auth-plugin --exec-arg=-- --exec-arg=get-token --exec-env=GOOGLE_APPLICATION_CREDENTIALS=/home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
+            kubectl get clusterrolebindings
             kubectl get pods -A
+        shell: /usr/bin/bash -e ***0***
+        env:
+            CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: /home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
+            GOOGLE_APPLICATION_CREDENTIALS: /home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
+            GOOGLE_GHA_CREDS_PATH: /home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
+            CLOUDSDK_CORE_PROJECT: $GCP_PROJECT
+            CLOUDSDK_PROJECT: $GCP_PROJECT
+            GCLOUD_PROJECT: $GCP_PROJECT
+            GCP_PROJECT: $GCP_PROJECT
+            GOOGLE_CLOUD_PROJECT: $GCP_PROJECT
+            CLOUDSDK_METRICS_ENVIRONMENT: github-actions-setup-gcloud
+            CLOUDSDK_METRICS_ENVIRONMENT_VERSION: 2.1.2
 
       - name: Create Argo CD Namespace
         run: kubectl create namespace argocd
