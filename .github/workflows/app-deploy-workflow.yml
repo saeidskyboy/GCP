@@ -38,8 +38,8 @@ jobs:
             kubectl config set-context --current --namespace=default
             kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.cmd-args "config config-helper --format=json"
             kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.cmd-path "$(which gke-gcloud-auth-plugin)"
-            kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.expiry-key "{.credential.token_expiry}"
-            kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.token-key "{.credential.access_token}"
+            kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.'expiry-key' '{.credential.token_expiry}'  # Corrected quoting
+            kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.'token-key' '{.credential.access_token}'  # Corrected quoting
             kubectl config set users.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.name "gcp"
             kubectl get clusterrolebindings
             kubectl get pods -A
