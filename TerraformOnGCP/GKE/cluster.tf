@@ -41,23 +41,3 @@ resource "google_container_cluster" "gke-cluster" {
 
   deletion_protection = false
 }
-
-# data "google_container_cluster" "existing_cluster" {
-#   name     = "gke-cluster"
-#   location = "us-central1-f"
-#   project  = "cloud-2255"
-# }
-
-# resource "kubernetes_namespace" "argocd" {
-#   count = var.create_cluster ? 1 : 0
-
-#   metadata {
-#     name = "argocd"
-#   }
-# }
-
-# variable "create_cluster" {
-#   type        = bool
-#   description = "Whether to create the GKE cluster (true) or use an existing one (false)."
-#   default     = true # default is true
-# }
