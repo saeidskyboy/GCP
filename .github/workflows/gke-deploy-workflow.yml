@@ -28,7 +28,7 @@ jobs:
         id: 'auth'
         uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}  # Updated secret name
+          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Set up Google Cloud SDK
@@ -38,33 +38,18 @@ jobs:
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
-        # No need for GOOGLE_APPLICATION_CREDENTIALS if you are using google-github-actions/auth
-        # env:
-        #  GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_ACCESS_KEY }}
+
 
       - name: Initialize Terraform
         run: terraform init
 
-      # Check if the cluster exists
-      - name: Check Cluster Existence
-        id: check_cluster
-        run: |
-          CLUSTER_NAME=$(terraform output -raw cluster_name)
-          CLUSTER_REGION=$(terraform output -raw cluster_region)
-          if gcloud container clusters list --regions "$CLUSTER_REGION" --filter="name=$CLUSTER_NAME" --format="value(name)" | grep -q "$CLUSTER_NAME"; then
-            echo "Cluster already exists."
-            echo "cluster_exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Cluster does not exist."
-            echo "cluster_exists=false" >> "$GITHUB_OUTPUT"
-          fi
-        continue-on-error: true
 
+        
       - name: Terraform Plan
-        if: steps.check_cluster.outputs.cluster_exists != 'true'
+
         run: terraform plan -out=tfplan
         id: plan
 
       - name: Terraform Apply
-        if: (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && steps.check_cluster.outputs.cluster_exists != 'true'
+
         run: terraform apply -auto-approve tfplan

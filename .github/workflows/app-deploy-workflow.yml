@@ -36,18 +36,22 @@ jobs:
         uses: hashicorp/setup-terraform@v2
       - name: Initialize Terraform
         run: terraform init
+      - name: Refresh Terraform State
+        run: terraform refresh
 
       - name: Get Cluster Name
         id: get_cluster_name
         run: |
           terraform output -raw cluster_name >> "$GITHUB_OUTPUT"
         working-directory: ./TerraformOnGCP/GKE
+        shell: bash
 
       - name: Get Cluster Region
         id: get_cluster_region
         run: |
           terraform output -raw cluster_region >> "$GITHUB_OUTPUT"
         working-directory: ./TerraformOnGCP/GKE
+        shell: bash
       # --- End Get Cluster Info ---
 
       - name: Configure gcloud and kubectl
@@ -60,6 +64,10 @@ jobs:
           kubectl get clusterrolebindings  # Requires cluster-admin
           kubectl get pods -A  # Check cluster-level access
 
+      - name: Create Argo CD Namespace
+        run: kubectl create namespace argocd
+        working-directory: ./TerraformOnGCP/GKE
+
       - name: Deploy Nginx
         run: kubectl apply -f k8s-configs/deployment.yml
         working-directory: ./TerraformOnGCP/GKE
@@ -68,38 +76,6 @@ jobs:
         run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
         working-directory: ./TerraformOnGCP/GKE
 
-        # we will uncomment this step if we would like have customize nginx/argocd config and create a config map for it (this file also exist and we can uncomment and use it)
-    #   - name: Wait for LoadBalancer IPs
-    #     id: get_lb_ips
-    #     run: |
-    #       get_lb_ip() {
-    #         local service_name=$1
-    #         local namespace=$2
-    #         local attempts=30
-    #         local delay=10
-    #         for i in $(seq 1 $attempts); do
-    #           ip=$(kubectl get service "$service_name" -n "$namespace" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    #           if [[ -n "$ip" ]]; then
-    #             echo "$ip"
-    #             return 0
-    #           fi
-    #           echo "Waiting for LoadBalancer IP for $service_name in $namespace (attempt $i/$attempts)..."
-    #           sleep "$delay"
-    #         done
-    #         echo "ERROR: Failed to get LoadBalancer IP for $service_name in $namespace after $attempts attempts." >&2
-    #         exit 1
-    #       }
-    #       ARGOCD_LB_IP=$(get_lb_ip argocd-server-lb argocd)
-    #       NGINX_LB_IP=$(get_lb_ip nginx-lb default)
-    #       echo "ARGOCD_LB_IP=$ARGOCD_LB_IP" >> "$GITHUB_OUTPUT"
-    #       echo "NGINX_LB_IP=$NGINX_LB_IP" >> "$GITHUB_OUTPUT"
-
-    #   - name: Create ConfigMaps
-    #     id: create_configmaps
-    #     run: |
-    #       sed "s|\${NGINX_LB_IP}|${{ steps.get_lb_ips.outputs.NGINX_LB_IP }}|g; s|\${ARGOCD_LB_IP}|${{ steps.get_lb_ips.outputs.ARGOCD_LB_IP }}|g" k8s-configs/config-maps.yml | kubectl apply -f -
-
-      # --- Ansible Setup and Execution ---
       - name: Create Ansible Inventory Directory
         run: mkdir -p ansible/inventory
         working-directory: ./TerraformOnGCP/GKE
@@ -111,7 +87,7 @@ jobs:
           projects:
             - ${{ secrets.GCP_PROJECT_ID }}
           regions:
-            - $(terraform output -raw cluster_region) # now you can have dynamic region
+            - $(terraform output -raw cluster_region)
           filters: []
           auth_kind: serviceaccount
           service_account_file: ${{ steps.auth.outputs.credentials_file_path }}
