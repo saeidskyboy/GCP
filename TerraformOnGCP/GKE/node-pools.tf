@@ -1,10 +1,9 @@
 # resource doc: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/google_service_account
 
 resource "google_container_node_pool" "primary_nodes" {
-  count              = data.google_container_cluster.existing_cluster.status == "RUNNING" ? 0 : 1
   name               = "primary-node-pool"
-  cluster            = "gke-cluster"
-  location           = "us-central1-f"
+  cluster            = google_container_cluster.gke-cluster.id
+  location           = google_container_cluster.gke-cluster.location
   initial_node_count = 1
 
   management {

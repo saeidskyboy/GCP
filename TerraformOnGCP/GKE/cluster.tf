@@ -1,8 +1,6 @@
 # resource doc: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_cluster
 
 resource "google_container_cluster" "gke-cluster" {
-  count = data.google_container_cluster.existing_cluster.status == "RUNNING" ? 0 : 1
-
   name     = "gke-cluster"
   location = "us-central1-f"
   network      = google_compute_network.vpc-gke.self_link
@@ -37,22 +35,29 @@ resource "google_container_cluster" "gke-cluster" {
 
   private_cluster_config {
     enable_private_nodes   = true
-    enable_private_endpoint = false
+    enable_private_endpoint = false # Set to true if using private endpoint
     master_ipv4_cidr_block  = "172.16.0.0/28"
   }
 
   deletion_protection = false
 }
 
-data "google_container_cluster" "existing_cluster" {
-  name     = "gke-cluster"  # Literal cluster name
-  location = "us-central1-f" # Literal location
-  project  = "cloud-2255"
-}
+# data "google_container_cluster" "existing_cluster" {
+#   name     = "gke-cluster"
+#   location = "us-central1-f"
+#   project  = "cloud-2255"
+# }
 
-resource "kubernetes_namespace" "argocd" {
-  count = data.google_container_cluster.existing_cluster.status == "RUNNING" ? 0 : 1
-  metadata {
-    name = "argocd"
-  }
-}
+# resource "kubernetes_namespace" "argocd" {
+#   count = var.create_cluster ? 1 : 0
+
+#   metadata {
+#     name = "argocd"
+#   }
+# }
+
+# variable "create_cluster" {
+#   type        = bool
+#   description = "Whether to create the GKE cluster (true) or use an existing one (false)."
+#   default     = true # default is true
+# }

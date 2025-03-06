@@ -1,6 +1,7 @@
 name: Destroy GKE Cluster
 
 on:
+  push:
   workflow_dispatch:  # Only allow manual triggering for destruction
 
 jobs:

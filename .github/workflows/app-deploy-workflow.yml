@@ -25,60 +25,29 @@ jobs:
           credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          install_components: gke-gcloud-auth-plugin
-
       # --- Get Cluster Info from Terraform ---
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
       - name: Initialize Terraform
         run: terraform init
-      - name: Refresh Terraform State
-        run: terraform refresh
-
-      - name: Get Cluster Name
-        id: get_cluster_name
-        run: |
-          terraform output -raw cluster_name >> "$GITHUB_OUTPUT"
         working-directory: ./TerraformOnGCP/GKE
-        shell: bash
-
-      - name: Get Cluster Region
-        id: get_cluster_region
-        run: |
-          terraform output -raw cluster_region >> "$GITHUB_OUTPUT"
-        working-directory: ./TerraformOnGCP/GKE
-        shell: bash
-      # --- End Get Cluster Info ---
 
       - name: Configure gcloud and kubectl
         run: |
-          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-          gcloud container clusters get-credentials "${{ steps.get_cluster_name.outputs.cluster_name }}" --region "${{ steps.get_cluster_region.outputs.cluster_region }}" --project ${{ secrets.GCP_PROJECT_ID }}
-          rm -rf ~/.kube
-          rm -rf ~/.config/gcloud # clean up to avoid any conflicts.
-          gcloud container clusters get-credentials "${{ steps.get_cluster_name.outputs.cluster_name }}" --region "${{ steps.get_cluster_region.outputs.cluster_region }}" --project ${{ secrets.GCP_PROJECT_ID }}
-          kubectl get clusterrolebindings  # Requires cluster-admin
-          kubectl get pods -A  # Check cluster-level access
+          gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
+          kubectl get pods -A
 
       - name: Create Argo CD Namespace
         run: kubectl create namespace argocd
-        working-directory: ./TerraformOnGCP/GKE
 
       - name: Deploy Nginx
         run: kubectl apply -f k8s-configs/deployment.yml
-        working-directory: ./TerraformOnGCP/GKE
 
       - name: Deploy LoadBalancer and Ingress
         run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
-        working-directory: ./TerraformOnGCP/GKE
 
       - name: Create Ansible Inventory Directory
         run: mkdir -p ansible/inventory
-        working-directory: ./TerraformOnGCP/GKE
 
       - name: Configure Dynamic Inventory (gcp.yml)
         run: |
@@ -93,16 +62,3 @@ jobs:
           service_account_file: ${{ steps.auth.outputs.credentials_file_path }}
           EOF
         shell: bash
-        working-directory: ./TerraformOnGCP/GKE
-
-      - name: Install google.cloud collection
-        run: ansible-galaxy collection install google.cloud
-        working-directory: ./TerraformOnGCP/GKE
-
-      - name: Install Argo CD with Helm (Ansible)
-        uses: dawidd6/action-ansible-playbook@v2
-        with:
-          playbook: ./TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
-          options: |
-            --extra-vars "argocd_namespace=argocd"
-            --inventory ./TerraformOnGCP/GKE/ansible/inventory/gcp.yml
