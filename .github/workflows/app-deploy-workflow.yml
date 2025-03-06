@@ -40,7 +40,7 @@ jobs:
             kubectl --kubeconfig=/home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json config set-credentials gke_${GCP_PROJECT}_us-central1-f_gke-cluster --exec-command=gcloud --exec-namespace=kubernetes.io --exec-api-version=client.authentication.k8s.io/v1alpha1 --exec-arg=--command=gke-gcloud-auth-plugin --exec-arg=-- --exec-arg=get-token --exec-env=GOOGLE_APPLICATION_CREDENTIALS=/home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
             kubectl get clusterrolebindings
             kubectl get pods -A
-        shell: /usr/bin/bash -e ***0***
+        shell: bash
         env:
             CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: /home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
             GOOGLE_APPLICATION_CREDENTIALS: /home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json
