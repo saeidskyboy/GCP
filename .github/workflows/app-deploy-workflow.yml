@@ -33,17 +33,19 @@ jobs:
 
       - name: Configure gcloud and kubectl
         run: |
-            gcloud auth activate-service-account --key-file=$GITHUB_WORKSPACE/gha-creds-eb30bdd8b2eee6a1.json
+            mkdir -p $GITHUB_WORKSPACE/GCP
+            cp /home/runner/work/GCP/GCP/gha-creds-eb30bdd8b2eee6a1.json $GITHUB_WORKSPACE/GCP/
+            gcloud auth activate-service-account --key-file=$GITHUB_WORKSPACE/GCP/gha-creds-eb30bdd8b2eee6a1.json
             gcloud config set project $GCP_PROJECT
             gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project $GCP_PROJECT
             kubectl config set-context --current --namespace=default
-            kubectl config set-credentials gke_$GCP_PROJECT_us-central1-f_gke-cluster --exec-command=gcloud --exec-namespace=kubernetes.io --exec-api-version=client.authentication.k8s.io/v1alpha1 --exec-arg=--command=gke-gcloud-auth-plugin --exec-arg=-- --exec-arg=get-token --exec-env=GOOGLE_APPLICATION_CREDENTIALS=$GITHUB_WORKSPACE/gha-creds-eb30bdd8b2eee6a1.json
+            kubectl config set-credentials gke_$GCP_PROJECT_us-central1-f_gke-cluster --exec-command=gcloud --exec-namespace=kubernetes.io --exec-api-version=client.authentication.k8s.io/v1alpha1 --exec-arg=--command=gke-gcloud-auth-plugin --exec-arg=-- --exec-arg=get-token --exec-env=GOOGLE_APPLICATION_CREDENTIALS=$GITHUB_WORKSPACE/GCP/gha-creds-eb30bdd8b2eee6a1.json
             kubectl get clusterrolebindings
             kubectl get pods -A
         shell: bash
         env:
             GCP_PROJECT: $GCP_PROJECT
-            GOOGLE_APPLICATION_CREDENTIALS: $GITHUB_WORKSPACE/gha-creds-eb30bdd8b2eee6a1.json
+            GOOGLE_APPLICATION_CREDENTIALS: $GITHUB_WORKSPACE/GCP/gha-creds-eb30bdd8b2eee6a1.json
 
       - name: Create Argo CD Namespace
         run: kubectl create namespace argocd
