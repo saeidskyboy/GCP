@@ -37,8 +37,6 @@ jobs:
             gcloud auth activate-service-account --key-file=$GITHUB_WORKSPACE/gcp-sa-key.json
             gcloud config set project cloud-2255
             gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
-            kubectl config set-context --current --namespace=default
-            kubectl config set-credentials gke_cloud-2255_us-central1-f_gke-cluster --exec-command=gcloud --exec-api-version=client.authentication.k8s.io/v1beta1 --exec-arg=--command=gke-gcloud-auth-plugin --exec-arg=-- --exec-arg=get-token --exec-env=GOOGLE_APPLICATION_CREDENTIALS=$GITHUB_WORKSPACE/gcp-sa-key.json
             kubectl get clusterrolebindings
             kubectl get pods -A
         shell: bash
