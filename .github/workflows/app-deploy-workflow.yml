@@ -34,13 +34,13 @@ jobs:
       - name: Configure gcloud and kubectl
         run: |
             echo $GCP_SA_KEY > $GITHUB_WORKSPACE/gcp-sa-key.json
-            gcloud auth activate-service-account --key-file=$GITHUB_WORKSPACE/gcp-sa-key.json
+            gcloud auth activate-service-account --key-file=$GITHUB_WORKSPACE/gcp-access-key.json
             gcloud config set project cloud-2255
             gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
         shell: bash
         env:
-            GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-            GOOGLE_APPLICATION_CREDENTIALS: $GITHUB_WORKSPACE/gcp-sa-key.json
+            GCP_SA_KEY: ${{ secrets.GCP_ACCESS_KEY }}
+            GOOGLE_APPLICATION_CREDENTIALS: $GITHUB_WORKSPACE/gcp-access-key.json
 
       - name: Create Argo CD Namespace
         run: kubectl create namespace argocd
