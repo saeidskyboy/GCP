@@ -37,7 +37,6 @@ jobs:
             gcloud auth activate-service-account --key-file=$GITHUB_WORKSPACE/gcp-sa-key.json
             gcloud config set project cloud-2255
             gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project cloud-2255
-            kubectl get pods -A
         shell: bash
         env:
             GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
