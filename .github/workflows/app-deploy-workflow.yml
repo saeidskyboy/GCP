@@ -80,19 +80,14 @@ jobs:
           EOF
         shell: bash
 
-      - name: Install collections
-        run: |
-          ansible-galaxy collection install google.cloud
-          ansible-galaxy collection install community.kubernetes
-        working-directory: ./TerraformOnGCP/GKE
+      - name: Install google.cloud collection
+        run: ansible-galaxy collection install google.cloud
 
       - name: Install Argo CD with Helm (Ansible)
-        uses: dawidd6/action-ansible-playbook@v2
+        uses: dawidd6/action-ansible-playbook@v2  # Back to your preferred action
         with:
           playbook: ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
-            --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml
-            -e ansible_python_interpreter=$(which python3)
-        env:
-            ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/TerraformOnGCP/GKE/collections
+            --inventory ansible/inventory/gcp.yml
+            --extra-vars "ansible_python_interpreter=$(which python3)" # Correct variable passing
