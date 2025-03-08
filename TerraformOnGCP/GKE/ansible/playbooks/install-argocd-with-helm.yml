@@ -3,6 +3,9 @@
   connection: local
   become: false
 
+  collections:
+  - community.kubernetes
+  
   tasks:
   - name: Add Argo Helm repository
     community.kubernetes.helm_repository:
