@@ -41,12 +41,10 @@ resource "google_container_cluster" "gke-cluster" {
 
   deletion_protection = false
 }
-  resource "google_container_cluster_iam_member" "ns-permission" {
-  cluster_id = google_container_cluster.gke-cluster.id
+resource "google_project_iam_member" "ns-permission" {
+  project = "cloud-2255"
   role       = "roles/container.clusterAdmin"
-  members = [
-    "terraform@cloud-2255.iam.gserviceaccount.com",
-  ]
+  member = "serviceAccount:terraform@cloud-2255.iam.gserviceaccount.com"
 }
 
 output "cluster_id" {
