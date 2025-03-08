@@ -83,10 +83,10 @@ jobs:
       - name: Install google.cloud collection
         run: ansible-galaxy collection install google.cloud
 
-      - name: Debug - List All Files
+      - name: Install collections
         run: |
-          echo "Current Working Directory: $(pwd)"
-          ls -lRth
+          ansible-galaxy collection install google.cloud -p ./collections
+          ansible-galaxy collection install community.kubernetes -p ./collections
         working-directory: ./TerraformOnGCP/GKE
 
       - name: Install Argo CD with Helm (Ansible)

@@ -25,7 +25,7 @@
               repository: argoproj/argocd-server
               tag: v2.9.3 
           extraArgs:
-            - --insecure #  Use --insecure for initial setup, then switch to proper TLS
+            - --insecure # For lab only; use TLS in production!
 
   - name: Get Argo CD initial admin password
     ansible.builtin.command:
