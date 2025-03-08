@@ -84,10 +84,10 @@ jobs:
         run: ansible-galaxy collection install google.cloud
 
       - name: Install Argo CD with Helm (Ansible)
-        uses: dawidd6/action-ansible-playbook@v2  # Back to your preferred action
+        uses: dawidd6/action-ansible-playbook@v2
         with:
           playbook: ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
             --inventory ansible/inventory/gcp.yml
-            --extra-vars "ansible_python_interpreter=$(which python3)" # Correct variable passing
+            --extra-vars "ansible_python_interpreter=$(which python3)"
