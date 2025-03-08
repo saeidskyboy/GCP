@@ -1,4 +1,4 @@
-# resource doc: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_cluster
+# resource doc: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_cluster 
 
 resource "google_container_cluster" "gke-cluster" {
   name     = "gke-cluster"

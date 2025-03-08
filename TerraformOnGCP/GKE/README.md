@@ -5,6 +5,7 @@
 5- kubectl get pods -w
 6- using workload identity and granting access to the pod to list GC buckets:
     - uncomment file service-account.tf and run terraform apply again to create a service account and grant access to GC bucket
+    check to have "Cloud Resource Manager API" enaled (for GH action interaction)
 7- once the service account created deploy file namespace.tf
 our pod can interact with our bucket, go to the pod ->
     - kubectl get pods -n staging
@@ -25,3 +26,5 @@ in case you will see -> "Error: INSTALLATION FAILED: Unable to continue with ins
 14- kubectl get ing (we have to have result with nginx-ing)
 
 15- ahve ansible installedCID
+
+*** When you assign the Kubernetes Engine Cluster Admin role to a service account, it grants the service account permissions to manage Kubernetes Engine clusters, but it does not grant the exact same permissions as the roles/container.clusterAdmin role.
