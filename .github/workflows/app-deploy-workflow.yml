@@ -79,6 +79,12 @@ jobs:
 
       - name: Print working directory
         run: pwd
+      
+      - name: List playbook directory
+        run: ls ./ansible/playbooks
+
+      - name: Verify playbook file
+        run: ls ./ansible/playbooks/install-argocd-with-helm.yml
 
       - name: Install google.cloud collection
         run: ansible-galaxy collection install google.cloud
