@@ -87,7 +87,7 @@ jobs:
         working-directory: ./TerraformOnGCP/GKE
 
       - name: Install Argo CD with Helm (Ansible)
-        uses: ansible/ansible-github-action@main  # Official Ansible action
+        uses: dawidd6/action-ansible-playbook@v2
         with:
           playbook: ansible/playbooks/install-argocd-with-helm.yml
           options: |
