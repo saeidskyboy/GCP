@@ -41,7 +41,7 @@ resource "google_container_cluster" "gke-cluster" {
 
   deletion_protection = false
 }
-  resource "google_container_cluster_iam_binding" "ns-permission" {
+  resource "google_container_cluster_iam_member" "ns-permission" {
   cluster_id = google_container_cluster.gke-cluster.id
   role       = "roles/container.clusterAdmin"
   members = [
