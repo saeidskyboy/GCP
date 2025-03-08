@@ -63,6 +63,9 @@ jobs:
       - name: Initialize Terraform
         run: terraform init
 
+      - name: Create Ansible Inventory Directory
+        run: mkdir -p ansible/inventory
+
       - name: Configure Dynamic Inventory (gcp.yml)
         run: |
           cat <<EOF > ansible/inventory/gcp.yml
@@ -70,29 +73,27 @@ jobs:
           projects:
             - ${{ secrets.GCP_PROJECT_ID }}
           regions:
-            - $(terraform output -raw cluster_region)
+            - us-central1-f
           filters: []
           auth_kind: serviceaccount
           service_account_file: ${{ steps.auth.outputs.credentials_file_path }}
           EOF
         shell: bash
 
-      - name: Print working directory
-        run: pwd
-      
-      - name: List playbook directory
-        run: ls ./ansible/playbooks
-
-      - name: Verify playbook file
-        run: ls ./ansible/playbooks/install-argocd-with-helm.yml
-
-      - name: Install google.cloud collection
-        run: ansible-galaxy collection install google.cloud
+      - name: Install collections
+        run: |
+          ansible-galaxy collection install google.cloud
+          ansible-galaxy collection install community.kubernetes
+        working-directory: ./TerraformOnGCP/GKE
 
       - name: Install Argo CD with Helm (Ansible)
-        uses: dawidd6/action-ansible-playbook@v2
+        uses: ansible/ansible-github-action@main  # Official Ansible action
         with:
-          playbook: /home/runner/work/GCP/GCP/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
+          playbook: ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
-            --inventory ansible/inventory/gcp.yml
+            --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml
+            -e ansible_python_interpreter=$(which python3)
+          # Set ANSIBLE_COLLECTIONS_PATHS - VERY IMPORTANT
+          env:
+            ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/TerraformOnGCP/GKE/collections
