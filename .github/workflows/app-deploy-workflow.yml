@@ -90,7 +90,7 @@ jobs:
         run: ansible-galaxy collection install google.cloud
 
       - name: Install Argo CD with Helm (Ansible)
-        uses: ansible-community.github-action@main
+        uses: dawidd6/action-ansible-playbook@v2
         with:
           playbook: /home/runner/work/GCP/GCP/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
           options: |
