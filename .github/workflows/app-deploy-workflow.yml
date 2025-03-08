@@ -92,7 +92,7 @@ jobs:
       - name: Install Argo CD with Helm (Ansible)
         uses: ansible-community.github-action@main
         with:
-          playbook: /home/runner/work/GCP/GCP/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml  # Corrected path
+          playbook: /home/runner/work/GCP/GCP/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
             --inventory ansible/inventory/gcp.yml
