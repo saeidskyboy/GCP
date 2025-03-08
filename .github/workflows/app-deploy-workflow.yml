@@ -68,6 +68,7 @@ jobs:
 
       - name: Configure Dynamic Inventory (gcp.yml)
         run: |
+          echo "Creating inventory file..."
           cat <<EOF > ansible/inventory/gcp.yml
           plugin: google.cloud.gcp_compute
           projects:
@@ -78,6 +79,7 @@ jobs:
           auth_kind: serviceaccount
           service_account_file: ${{ steps.auth.outputs.credentials_file_path }}
           EOF
+          echo "Inventory file created: $(ls -l ansible/inventory/gcp.yml)"
         shell: bash
 
       - name: Install google.cloud collection
