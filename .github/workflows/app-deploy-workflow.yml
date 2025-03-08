@@ -35,7 +35,7 @@ jobs:
     #       project_id: ${{ secrets.GCP_PROJECT_ID }}
     #       install_components: gke-gcloud-auth-plugin
 
-    #   - name: Configure gcloud and kubectl
+    #   - name: Configure gcloud and kubectl 
     #     run: |
     #         gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
     #         gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project ${{ secrets.GCP_PROJECT_ID }}
