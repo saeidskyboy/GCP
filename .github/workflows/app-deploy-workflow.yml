@@ -94,6 +94,5 @@ jobs:
             --extra-vars "argocd_namespace=argocd"
             --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml
             -e ansible_python_interpreter=$(which python3)
-          # Set ANSIBLE_COLLECTIONS_PATHS - VERY IMPORTANT
-          env:
+        env:
             ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/TerraformOnGCP/GKE/collections
