@@ -85,10 +85,23 @@ jobs:
       - name: Install google.cloud collection
         run: ansible-galaxy collection install google.cloud
 
-      - name: Install collections
+      - name: Install ansible collections
         run: |
-          ansible-galaxy collection install google.cloud -p ./ansible/collections
-          ansible-galaxy collection install community.kubernetes -p ./ansible/collections
+          mkdir -p ./ansible/collections
+          ansible-galaxy collection install google.cloud -p $(pwd)/ansible/collections
+          ansible-galaxy collection install community.kubernetes -p $(pwd)/ansible/collections
+        working-directory: ./TerraformOnGCP/GKE
+
+      - name: Debug Ansible configuration
+        run: |
+            pwd
+            ls -la
+            echo "Checking if ansible.cfg exists:"
+            find . -name "ansible.cfg"
+            echo "Content of ansible.cfg:"
+            cat $(find . -name "ansible.cfg")
+            echo "Ansible config dump:"
+            ansible-config dump | grep COLLECTIONS_PATHS
         working-directory: ./TerraformOnGCP/GKE
 
       - name: Install Argo CD with Helm (Ansible)
