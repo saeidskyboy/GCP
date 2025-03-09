@@ -34,6 +34,16 @@ jobs:
         env:
             GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
   
+       # --- DEBUGGING: Check cluster state BEFORE Helm install ---
+      - name: Debug - List Nodes
+        run: kubectl get nodes -o wide
+
+      - name: Debug - List Pods (All Namespaces)
+        run: kubectl get pods -A -o wide
+
+      - name: Create Argo CD Namespace
+        run: kubectl create namespace argocd
+
       - name: Add Argo Helm repository
         run: helm repo add argo https://argoproj.github.io/argo-helm
 
@@ -41,20 +51,26 @@ jobs:
         run: |
           helm install argocd argo/argo-cd \
             --namespace argocd \
-            --create-namespace \
             --wait --timeout 600s \
             --version "5.16.0" \
             --set server.extraArgs[0]="--insecure" \
             --set server.image.repository=argoproj/argocd \
             --set server.image.tag=v2.9.3
 
+      # --- DEBUGGING: Check cluster state AFTER Helm install ---
+      - name: Debug - List Pods (Argo CD Namespace) - After Install
+        run: kubectl get pods -n argocd -o wide
+
+      - name: Debug - Describe Argo CD Server Pod - After Install
+        run: kubectl describe pod -n argocd -l app.kubernetes.io/name=argocd-server
+
       - name: Get Argo CD initial admin password
         id: get_password
         run: |
           PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
           echo "password=$PASSWORD" >> "$GITHUB_OUTPUT"
-    
+
       - name: Output Argo CD Password
         run: |
-          password=${{ steps.get_password.outputs.password }}
-          echo "Argo CD initial admin password: $password"
+          echo "Argo CD initial admin password: ${{ steps.get_password.outputs.password }}"
+  
