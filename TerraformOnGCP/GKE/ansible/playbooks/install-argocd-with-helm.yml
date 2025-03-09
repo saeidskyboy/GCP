@@ -31,7 +31,7 @@
             - --insecure # For lab only; use TLS in production!
 
   - name: Wait for Argo CD API server to become ready
-    kubernetes.core.wait_for:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: Pod
       namespace: argocd
