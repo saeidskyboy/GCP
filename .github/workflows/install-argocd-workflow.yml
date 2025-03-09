@@ -44,6 +44,12 @@ jobs:
       - name: Create Argo CD Namespace
         run: kubectl create namespace argocd
 
+      - name: Deploy Nginx
+        run: kubectl apply -f k8s-configs/deployment.yml
+
+      - name: Deploy LoadBalancer and Ingress
+        run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
+
       - name: Install Argo CD
         run: |
           kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.3/manifests/install.yaml
@@ -53,7 +59,8 @@ jobs:
         run: |
           PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
           echo "password=$PASSWORD" >> "$GITHUB_OUTPUT"
-
+  
       - name: Output Argo CD Password
         run: |
-          echo "Argo CD initial admin password: ${{ steps.get_password.outputs.password }}"
+            echo "Argo CD initial admin password: ${{ steps.get_password.outputs.password }}"
+        shell: bash
