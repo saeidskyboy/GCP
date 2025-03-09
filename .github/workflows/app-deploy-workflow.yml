@@ -124,8 +124,8 @@ jobs:
       - name: Install Argo CD with Helm (Ansible)
         uses: dawidd6/action-ansible-playbook@v2
         with:
-          playbook: ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml  # Absolute path
+          playbook: ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
-            --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml  # Absolute path
+            --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml
             --extra-vars "ansible_python_interpreter=$(which python3)"
