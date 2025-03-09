@@ -121,6 +121,9 @@ jobs:
       #     ls -l ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/
       #   working-directory: ./TerraformOnGCP/GKE
 
+      - name: Set Python interpreter path
+        run: echo "PYTHON_PATH=$(which python3)" >> $GITHUB_ENV
+
       - name: Install Argo CD with Helm (Ansible)
         uses: dawidd6/action-ansible-playbook@v2
         with:
@@ -128,4 +131,4 @@ jobs:
           options: |
             --extra-vars "argocd_namespace=argocd"
             --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml
-            --extra-vars "ansible_python_interpreter=$(which python3)"
+            --extra-vars "ansible_python_interpreter=/usr/bin/python3"
