@@ -83,7 +83,7 @@ jobs:
         run: |
           cat <<EOF > ansible/inventory/gcp.yml
           [localhost]
-          127.0.0.1
+          localhost ansible_connection=local ansible_python_interpreter=$(which python3)
           EOF
         shell: bash
         working-directory: ./TerraformOnGCP/GKE # the problem
@@ -115,11 +115,11 @@ jobs:
       #       --inventory ansible/inventory/gcp.yml
       #       --extra-vars "ansible_python_interpreter=$(which python3)"
 
-      - name: Debug - Verify Working Directory and File
-        run: |
-          pwd
-          ls -l ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/
-        working-directory: ./TerraformOnGCP/GKE
+      # - name: Debug - Verify Working Directory and File
+      #   run: |
+      #     pwd
+      #     ls -l ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/
+      #   working-directory: ./TerraformOnGCP/GKE
 
       - name: Install Argo CD with Helm (Ansible)
         uses: dawidd6/action-ansible-playbook@v2
