@@ -21,13 +21,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # - name: Authenticate to Google Cloud
-      #   id: 'auth'
-      #   uses: 'google-github-actions/auth@v1'
-      #   with:
-      #     credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
-      #     project_id: ${{ secrets.GCP_PROJECT_ID }}
-      #     token_format: 'access_token'
+      - name: Authenticate to Google Cloud
+        id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          token_format: 'access_token'
 
       # - name: Set up Google Cloud SDK
       #   uses: google-github-actions/setup-gcloud@v2
@@ -114,13 +114,18 @@ jobs:
       #       --inventory ansible/inventory/gcp.yml
       #       --extra-vars "ansible_python_interpreter=$(which python3)"
 
+      - name: Debug - Verify Working Directory and File
+        run: |
+          pwd
+          ls -l ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/
+        working-directory: ./TerraformOnGCP/GKE
       - name: Install Argo CD with Helm (Ansible)
         uses: dawidd6/action-ansible-playbook@v2
         with:
-          playbook: ansible/playbooks/install-argocd-with-helm.yml
+          playbook: ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
-            --inventory ansible/inventory/gcp.yml
+            --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml
             --extra-vars "ansible_python_interpreter=$(which python3)"
         env:
             ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/TerraformOnGCP/GKE/collections
