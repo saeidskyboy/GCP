@@ -51,11 +51,16 @@ jobs:
         run: |
           helm install argocd argo/argo-cd \
             --namespace argocd \
+            --create-namespace \
             --wait --timeout 600s \
             --version "5.16.0" \
             --set server.extraArgs[0]="--insecure" \
             --set server.image.repository=argoproj/argocd \
-            --set server.image.tag=v2.9.3
+            --set server.image.tag=v2.9.3 \
+            --debug  # Add Helm debug flag
+
+      - name: Wait for a While  # Add a delay before checking status
+        run: sleep 60
 
       # --- DEBUGGING: Check cluster state AFTER Helm install ---
       - name: Debug - List Pods (Argo CD Namespace) - After Install
