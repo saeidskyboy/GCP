@@ -87,8 +87,8 @@ jobs:
 
       - name: Install collections
         run: |
-          ansible-galaxy collection install google.cloud -p ./collections
-          ansible-galaxy collection install community.kubernetes -p ./collections
+          ansible-galaxy collection install google.cloud -p ./ansible/collections
+          ansible-galaxy collection install community.kubernetes -p ./ansible/collections
         working-directory: ./TerraformOnGCP/GKE
 
       - name: Install Argo CD with Helm (Ansible)
