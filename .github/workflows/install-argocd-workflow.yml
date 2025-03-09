@@ -9,6 +9,9 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+    defaults:
+      run:
+        working-directory: ./TerraformOnGCP/GKE
 
     steps:
       - name: Checkout code
