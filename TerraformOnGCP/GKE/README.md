@@ -28,3 +28,7 @@ in case you will see -> "Error: INSTALLATION FAILED: Unable to continue with ins
 15- ahve ansible installedCID
 
 *** When you assign the Kubernetes Engine Cluster Admin role to a service account, it grants the service account permissions to manage Kubernetes Engine clusters, but it does not grant the exact same permissions as the roles/container.clusterAdmin role.
+
+add this role: gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+  --member=serviceAccount:<your sa> \
+  --role=roles/container.admin
