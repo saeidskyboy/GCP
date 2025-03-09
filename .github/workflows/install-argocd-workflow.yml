@@ -21,23 +21,19 @@ jobs:
           credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Set up Google Cloud SDK
+      - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           install_components: gke-gcloud-auth-plugin
-
-      - name: Configure gcloud and kubectl
+  
+      - name: connect to GKE
         run: |
-          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-          gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project ${{ secrets.GCP_PROJECT_ID }}
-          kubectl config set-context --current --namespace=default
-          kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.cmd-args "config config-helper --format=json"
-          kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.cmd-path "$(which gke-gcloud-auth-plugin)"
-          kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.'expiry-key' '{.credential.token_expiry}'
-          kubectl config set clusters.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.config.'token-key' '{.credential.access_token}'
-          kubectl config set users.gke_${{ secrets.GCP_PROJECT_ID }}_us-central1-f_gke-cluster.auth-provider.name "gcp"
-
+            gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+            gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project ${{ secrets.GCP_PROJECT_ID }}
+        env:
+            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+  
       - name: Add Argo Helm repository
         run: helm repo add argo https://argoproj.github.io/argo-helm
 
