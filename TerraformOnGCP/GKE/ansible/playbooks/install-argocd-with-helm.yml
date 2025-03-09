@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: localhost
   gather_facts: false
   connection: local
   become: false
@@ -8,12 +8,12 @@
 
   tasks:
   - name: Add Argo Helm repository
-    community.kubernetes.helm_repository:
+    kubernetes.core.helm_repository:
       name: argo
       repo_url: https://argoproj.github.io/argo-helm
 
   - name: Install Argo CD
-    community.kubernetes.helm:
+    kubernetes.core.helm:
       name: argocd
       chart_ref: argo/argo-cd
       release_namespace: argocd
@@ -29,6 +29,18 @@
               tag: v2.9.3 
           extraArgs:
             - --insecure # For lab only; use TLS in production!
+
+  - name: Wait for Argo CD API server to become ready
+    community.kubernetes.k8s_info:
+      api_version: v1
+      kind: Pod
+      namespace: argocd
+      name: argocd-server
+      wait: yes
+      wait_timeout: 300
+      wait_condition:
+        type: Ready
+        status: "True"
 
   - name: Get Argo CD initial admin password
     ansible.builtin.command:

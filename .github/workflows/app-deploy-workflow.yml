@@ -86,6 +86,7 @@ jobs:
           127.0.0.1
           EOF
         shell: bash
+        working-directory: ./TerraformOnGCP/GKE # the problem
 
       - name: Install collections
         run: |
@@ -119,13 +120,11 @@ jobs:
           pwd
           ls -l ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/
         working-directory: ./TerraformOnGCP/GKE
+
       - name: Install Argo CD with Helm (Ansible)
-        uses: dawidd6/action-ansible-playbook@v2
+        uses: dawidd6/action-ansible-playbook@v2  # Back to your preferred action
         with:
-          playbook: ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
+          playbook: ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
-            --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml
-            --extra-vars "ansible_python_interpreter=$(which python3)"
-        env:
-            ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/TerraformOnGCP/GKE/collections
+            --inventory ansible/inventory/gcp.yml
