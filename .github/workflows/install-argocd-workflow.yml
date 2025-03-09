@@ -44,36 +44,9 @@ jobs:
       - name: Create Argo CD Namespace
         run: kubectl create namespace argocd
 
-      - name: Add Argo Helm repository
-        run: helm repo add argo https://argoproj.github.io/argo-helm
-
       - name: Install Argo CD
-        id: helm_install  # Add an ID to this step
-        continue-on-error: true  # Continue even if this step fails
         run: |
-          helm install argocd argo/argo-cd \
-            --namespace argocd \
-            --create-namespace \
-            --wait --timeout 600s \
-            --version "5.16.0" \
-            --set server.extraArgs[0]="--insecure" \
-            --set server.image.repository=argoproj/argocd \
-            --set server.image.tag=v2.9.3 \
-            --debug  # Add Helm debug flag
-
-      - name: Wait for a While  # Add a delay before checking status
-        run: sleep 60
-      # --- DEBUGGING: Check cluster state AFTER Helm install ---
-      - name: Debug - List Pods (Argo CD Namespace) - After Install
-        if: steps.helm_install.outcome == 'failure'  # Run only if Helm install failed
-        run: kubectl get pods -n argocd -o wide
-
-      - name: Debug - Describe Argo CD Server Pod - After Install
-        if: steps.helm_install.outcome == 'failure'  # Run only if Helm install failed
-        run: kubectl describe pod -n argocd -l app.kubernetes.io/name=argocd-server
-      - name: Debug - Describe Argo CD deployment - After Install
-        if: steps.helm_install.outcome == 'failure'  # Run only if Helm install failed.
-        run: kubectl describe deployment -n argocd argocd-server
+          kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.3/manifests/install.yaml
 
       - name: Get Argo CD initial admin password
         id: get_password
@@ -84,4 +57,3 @@ jobs:
       - name: Output Argo CD Password
         run: |
           echo "Argo CD initial admin password: ${{ steps.get_password.outputs.password }}"
-  
