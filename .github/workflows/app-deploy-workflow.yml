@@ -21,38 +21,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Authenticate to Google Cloud
-        id: 'auth'
-        uses: 'google-github-actions/auth@v1'
-        with:
-          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          token_format: 'access_token'
+      # - name: Authenticate to Google Cloud
+      #   id: 'auth'
+      #   uses: 'google-github-actions/auth@v1'
+      #   with:
+      #     credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
+      #     project_id: ${{ secrets.GCP_PROJECT_ID }}
+      #     token_format: 'access_token'
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          install_components: gke-gcloud-auth-plugin
+      # - name: Set up Google Cloud SDK
+      #   uses: google-github-actions/setup-gcloud@v2
+      #   with:
+      #     project_id: ${{ secrets.GCP_PROJECT_ID }}
+      #     install_components: gke-gcloud-auth-plugin
 
-      - name: Configure gcloud and kubectl 
-        run: |
-            gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-            gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project ${{ secrets.GCP_PROJECT_ID }}
-        env:
-            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+      # - name: Configure gcloud and kubectl 
+      #   run: |
+      #       gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+      #       gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project ${{ secrets.GCP_PROJECT_ID }}
+      #   env:
+      #       GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Create Argo CD Namespace
-        run: kubectl create namespace argocd
+      # # - name: Create Argo CD Namespace
+      #   run: kubectl create namespace argocd
 
-      - name: Deploy Nginx
-        run: kubectl apply -f k8s-configs/deployment.yml
+      # - name: Deploy Nginx
+      #   run: kubectl apply -f k8s-configs/deployment.yml
 
-      - name: Deploy LoadBalancer and Ingress
-        run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
+      # - name: Deploy LoadBalancer and Ingress
+      #   run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
 
-      - name: Create Ansible Inventory Directory
-        run: mkdir -p ansible/inventory
+      # - name: Create Ansible Inventory Directory
+      #   run: mkdir -p ansible/inventory
 
       - name: Set up Terraform # Required for Ansible inventory
         uses: hashicorp/setup-terraform@v2
@@ -60,27 +60,32 @@ jobs:
       - name: Initialize Terraform
         run: terraform init
 
-      - name: Create Ansible Inventory Directory
-        run: mkdir -p ansible/inventory
-
-      - name: Configure Dynamic Inventory (gcp.yml)
-        run: |
-          echo "Creating inventory file..."
-          cat <<EOF > ansible/inventory/gcp.yml
-          plugin: google.cloud.gcp_compute
-          projects:
-            - ${{ secrets.GCP_PROJECT_ID }}
-          regions:
-            - us-central1-f
-          filters: []
-          auth_kind: serviceaccount
-          service_account_file: ${{ steps.auth.outputs.credentials_file_path }}
-          EOF
-          echo "Inventory file created: $(ls -l ansible/inventory/gcp.yml)"
-        shell: bash
+      # - name: Configure Dynamic Inventory (gcp.yml)
+      #   run: |
+      #     echo "Creating inventory file..."
+      #     cat <<EOF > ansible/inventory/gcp.yml
+      #     plugin: google.cloud.gcp_compute
+      #     projects:
+      #       - ${{ secrets.GCP_PROJECT_ID }}
+      #     regions:
+      #       - us-central1-f
+      #     filters: []
+      #     auth_kind: serviceaccount
+      #     service_account_file: ${{ steps.auth.outputs.credentials_file_path }}
+      #     EOF
+      #     echo "Inventory file created: $(ls -l ansible/inventory/gcp.yml)"
+      #   shell: bash
 
       - name: Install google.cloud collection
         run: ansible-galaxy collection install google.cloud
+
+      - name: Configure Dynamic Inventory (gcp.yml)
+        run: |
+          cat <<EOF > ansible/inventory/gcp.yml
+          [localhost]
+          127.0.0.1
+          EOF
+        shell: bash
 
       - name: Install collections
         run: |
@@ -88,23 +93,34 @@ jobs:
           ansible-galaxy collection install community.kubernetes -p ./collections
         working-directory: ./TerraformOnGCP/GKE
 
-      - name: Debug Ansible configuration
-        run: |
-            pwd
-            ls -la
-            echo "Checking if ansible.cfg exists:"
-            find . -name "ansible.cfg"
-            echo "Content of ansible.cfg:"
-            cat $(find . -name "ansible.cfg")
-            echo "Ansible config dump:"
-            ansible-config dump | grep COLLECTIONS_PATHS
-        working-directory: ./TerraformOnGCP/GKE
+      # - name: Debug Ansible configuration
+      #   run: |
+      #       pwd
+      #       ls -la
+      #       echo "Checking if ansible.cfg exists:"
+      #       find . -name "ansible.cfg"
+      #       echo "Content of ansible.cfg:"
+      #       cat $(find . -name "ansible.cfg")
+      #       echo "Ansible config dump:"
+      #       ansible-config dump | grep COLLECTIONS_PATHS
+      #   working-directory: ./TerraformOnGCP/GKE
+
+      # - name: Install Argo CD with Helm (Ansible)
+      #   uses: dawidd6/action-ansible-playbook@v2
+      #   with:
+      #     playbook: /home/runner/work/GCP/GCP/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
+      #     options: |
+      #       --extra-vars "argocd_namespace=argocd"
+      #       --inventory ansible/inventory/gcp.yml
+      #       --extra-vars "ansible_python_interpreter=$(which python3)"
 
       - name: Install Argo CD with Helm (Ansible)
         uses: dawidd6/action-ansible-playbook@v2
         with:
-          playbook: /home/runner/work/GCP/GCP/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
+          playbook: ansible/playbooks/install-argocd-with-helm.yml
           options: |
             --extra-vars "argocd_namespace=argocd"
             --inventory ansible/inventory/gcp.yml
             --extra-vars "ansible_python_interpreter=$(which python3)"
+        env:
+            ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/TerraformOnGCP/GKE/collections
