@@ -29,7 +29,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           token_format: 'access_token'
 
-      - name: Set up gcloud cli
+      - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
@@ -123,6 +123,10 @@ jobs:
 
       - name: Set Python interpreter path
         run: echo "PYTHON_PATH=$(which python3)" >> $GITHUB_ENV
+
+      - name: Install required Python packages # install the kubernetes Python library for the third task that's waiting for the ArgoCD API server to become ready.
+        run: |
+          pip install kubernetes
 
       - name: Install Argo CD with Helm (Ansible)
         uses: dawidd6/action-ansible-playbook@v2
