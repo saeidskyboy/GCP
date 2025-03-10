@@ -43,8 +43,8 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan -var="create_cluster=true"
+        run: terraform plan -out=tfplan
         id: plan
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan -var="create_cluster=true"
+        run: terraform apply -auto-approve tfplan

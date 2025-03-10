@@ -1,10 +1,10 @@
-name: Deploy Application
+name: Create svc and deployment
 
 on:
-  # workflow_run:
-  #   workflows: ["Deploy GKE Cluster"]
-  #   types:
-  #     - completed
+  workflow_run:
+    workflows: ["Deploy GKE Cluster"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
@@ -42,27 +42,23 @@ jobs:
         env:
             GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-      # # - name: Create Argo CD Namespace
-      #   run: kubectl create namespace argocd
+      - name: Create Argo CD Namespace svc
+        run: kubectl apply -f k8s-configs/argocd-ns.yml
 
-      # - name: Deploy Nginx
-      #   run: kubectl apply -f k8s-configs/deployment.yml
-      #   working-directory: ./TerraformOnGCP/GKE
+      - name: Deploy Nginx
+        run: kubectl apply -f k8s-configs/deployment.yml
 
-      # - name: Deploy Nginx
-      #   run: kubectl apply -f k8s-configs/deployment.yml
-
-      # - name: Deploy LoadBalancer and Ingress
-      #   run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
+      - name: Create LoadBalancer svc
+        run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
 
       # - name: Create Ansible Inventory Directory
       #   run: mkdir -p ansible/inventory
 
-      - name: Set up Terraform # Required for Ansible inventory
-        uses: hashicorp/setup-terraform@v2
+      # - name: Set up Terraform # Required for Ansible inventory
+      #   uses: hashicorp/setup-terraform@v2
 
-      - name: Initialize Terraform
-        run: terraform init
+      # - name: Initialize Terraform
+      #   run: terraform init
 
       # - name: Configure Dynamic Inventory (gcp.yml)
       #   run: |
@@ -80,23 +76,23 @@ jobs:
       #     echo "Inventory file created: $(ls -l ansible/inventory/gcp.yml)"
       #   shell: bash
 
-      - name: Install google.cloud collection
-        run: ansible-galaxy collection install google.cloud
+      # - name: Install google.cloud collection
+      #   run: ansible-galaxy collection install google.cloud
 
-      - name: Configure Dynamic Inventory (gcp.yml)
-        run: |
-          cat <<EOF > ansible/inventory/gcp.yml
-          [localhost]
-          localhost ansible_connection=local ansible_python_interpreter=$(which python3)
-          EOF
-        shell: bash
-        working-directory: ./TerraformOnGCP/GKE # the problem
+      # - name: Configure Dynamic Inventory (gcp.yml)
+      #   run: |
+      #     cat <<EOF > ansible/inventory/gcp.yml
+      #     [localhost]
+      #     localhost ansible_connection=local ansible_python_interpreter=$(which python3)
+      #     EOF
+      #   shell: bash
+      #   working-directory: ./TerraformOnGCP/GKE
 
-      - name: Install collections
-        run: |
-          ansible-galaxy collection install google.cloud -p ./collections
-          ansible-galaxy collection install community.kubernetes -p ./collections
-        working-directory: ./TerraformOnGCP/GKE
+      # - name: Install collections
+      #   run: |
+      #     ansible-galaxy collection install google.cloud -p ./collections
+      #     ansible-galaxy collection install community.kubernetes -p ./collections
+      #   working-directory: ./TerraformOnGCP/GKE
 
       # - name: Debug Ansible configuration
       #   run: |
@@ -125,19 +121,19 @@ jobs:
       #     ls -l ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/
       #   working-directory: ./TerraformOnGCP/GKE
 
-      - name: Set Python interpreter path
-        run: echo "PYTHON_PATH=$(which python3)" >> $GITHUB_ENV
+      # - name: Set Python interpreter path
+      #   run: echo "PYTHON_PATH=$(which python3)" >> $GITHUB_ENV
 
-      - name: Install required Python packages # install the kubernetes Python library for the third task that's waiting for the ArgoCD API server to become ready.
-        run: |
-          pip install kubernetes
+      # - name: Install required Python packages # install the kubernetes Python library for the third task that's waiting for the ArgoCD API server to become ready.
+      #   run: |
+      #     pip install kubernetes
 
-      - name: Install Argo CD with Helm (Ansible)
-        uses: dawidd6/action-ansible-playbook@v2
-        with:
-          playbook: ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
-          options: |
-            --extra-vars "argocd_namespace=argocd"
-            --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml
-            --extra-vars "ansible_python_interpreter=/usr/bin/python3"
-            --extra-vars "kubeconfig_path=~/.kube/config"
+      # - name: Install Argo CD with Helm (Ansible)
+      #   uses: dawidd6/action-ansible-playbook@v2
+      #   with:
+      #     playbook: ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/playbooks/install-argocd-with-helm.yml
+      #     options: |
+      #       --extra-vars "argocd_namespace=argocd"
+      #       --inventory ${{ github.workspace }}/TerraformOnGCP/GKE/ansible/inventory/gcp.yml
+      #       --extra-vars "ansible_python_interpreter=/usr/bin/python3"
+      #       --extra-vars "kubeconfig_path=~/.kube/config"
