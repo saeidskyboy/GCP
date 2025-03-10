@@ -68,6 +68,6 @@ resource "google_project_iam_member" "ns-permission" {
   }
 
 output "cluster_id" {
-  value = google_container_cluster.gke-cluster.id
+  value = google_container_cluster.gke-cluster.[count.index].id
   
 }
