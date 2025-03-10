@@ -1,8 +1,7 @@
 resource "google_container_node_pool" "primary_nodes" {
-  count              = var.create_cluster ? 1 : 0
   name               = "primary-node-pool"
-  cluster            = google_container_cluster.gke-cluster[count.index].id
-  location           = google_container_cluster.gke-cluster[count.index].location
+  cluster            = google_container_cluster.gke-cluster.id
+  location           = google_container_cluster.gke-cluster.location
   initial_node_count = 1
 
   management {
@@ -18,7 +17,7 @@ resource "google_container_node_pool" "primary_nodes" {
       role = "general"
     }
     # Add the network tags.  This is the crucial fix!
-    tags = ["gke-gke-cluster-${google_container_cluster.gke-cluster[0].cluster_id}-node"]
+    tags = ["gke-gke-cluster-${google_container_cluster.gke-cluster.name}-node"]
 
     service_account = "terraform@cloud-2255.iam.gserviceaccount.com"
     oauth_scopes = [
