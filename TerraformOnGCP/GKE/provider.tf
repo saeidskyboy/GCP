@@ -18,5 +18,5 @@ terraform {
 provider "google" {
   project     = "cloud-2255"
   region      = "us-cenetral1"
-  # credentials = "./keys.json" # comment this parameter if you are using a GH CI/CD and GH secrets
+  # credentials = "./keys.json" # comment this parameter if you are using a GH CI/CD and GH secrets 
   }

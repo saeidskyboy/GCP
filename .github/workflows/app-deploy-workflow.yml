@@ -1,4 +1,4 @@
-name: Create svc and deployment
+name: Create svc & Deploy nginx
 
 on:
   workflow_run:
