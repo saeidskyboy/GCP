@@ -1,8 +1,8 @@
 resource "google_container_node_pool" "primary_nodes" {
   count              = var.create_cluster ? 1 : 0
   name               = "primary-node-pool"
-  cluster            = google_container_cluster.gke-cluster[0].id
-  location           = google_container_cluster.gke-cluster[0].location
+  cluster            = google_container_cluster.gke-cluster.id
+  location           = google_container_cluster.gke-cluster.location
   initial_node_count = 1
 
   management {
