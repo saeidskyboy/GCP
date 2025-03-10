@@ -47,6 +47,10 @@ jobs:
 
       # - name: Deploy Nginx
       #   run: kubectl apply -f k8s-configs/deployment.yml
+      #   working-directory: ./TerraformOnGCP/GKE
+
+      # - name: Deploy Nginx
+      #   run: kubectl apply -f k8s-configs/deployment.yml
 
       # - name: Deploy LoadBalancer and Ingress
       #   run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml

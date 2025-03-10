@@ -1,10 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment
+  name: nginx-test-deployment
   namespace: default
+  labels:
+    app.kubernetes.io/name: nginx
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: nginx
@@ -18,36 +20,3 @@ spec:
         image: nginx:stable
         ports:
         - containerPort: 80
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 200m
-            memory: 256Mi
-      # Tolerations and Affinity for the spot-pool
-      tolerations:
-      - key: "instance_type"
-        operator: "Equal"
-        value: "spot"
-        effect: "NoSchedule"
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: team
-                operator: In
-                values:
-                - devops
-        podAntiAffinity:  # Keep this for better pod distribution
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 1
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: app.kubernetes.io/name
-                  operator: In
-                  values:
-                  - nginx
-              topologyKey: kubernetes.io/hostname

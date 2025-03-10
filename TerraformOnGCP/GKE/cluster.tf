@@ -1,6 +1,7 @@
 # resource doc: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_cluster 
 
 resource "google_container_cluster" "gke-cluster" {
+  count = var.create_cluster ? 1 : 0
   name     = "gke-cluster"
   location = "us-central1-f"
   network      = google_compute_network.vpc-gke.self_link
@@ -41,11 +42,30 @@ resource "google_container_cluster" "gke-cluster" {
 
   deletion_protection = false
 }
+
+data "google_container_cluster" "existing_cluster" {
+  name     = "gke-cluster"
+  location = "us-central1-f"
+  project  = "cloud-2255"
+}
+
+resource "kubernetes_namespace" "argocd" {
+  count = var.create_cluster ? 1 : 0
+  metadata {
+    name = "argocd"
+  }
+}
 resource "google_project_iam_member" "ns-permission" {
   project = "cloud-2255"
   role       = "roles/container.clusterAdmin"
   member = "serviceAccount:terraform@cloud-2255.iam.gserviceaccount.com"
 }
+
+ variable "create_cluster" {
+    description = "Whether to create the cluster or not"
+    type        = bool
+    default     = true
+  }
 
 output "cluster_id" {
   value = google_container_cluster.gke-cluster.id
