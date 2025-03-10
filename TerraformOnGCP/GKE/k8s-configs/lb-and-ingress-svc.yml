@@ -32,40 +32,40 @@ spec:
 
 ---
 
-# Ingress for Argo CD (in the argocd namespace)
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: argocd-ingress
-  namespace: argocd  # Ingress for Argo CD stays in the argocd namespace
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /argocd
-        pathType: Prefix
-        backend:
-          service:
-            name: argocd-server-lb
-            port:
-              number: 80
+# # Ingress for Argo CD (in the argocd namespace)
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: argocd-ingress
+#   namespace: argocd  # Ingress for Argo CD stays in the argocd namespace
+# spec:
+#   rules:
+#   - http:
+#       paths:
+#       - path: /argocd
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: argocd-server-lb
+#             port:
+#               number: 80
 
----
+# ---
 
-# Ingress for Nginx (in the default namespace)
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: nginx-ingress
-  namespace: default  # Ingress for Nginx is in the default namespace
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: nginx-lb
-            port:
-              number: 80
+# # Ingress for Nginx (in the default namespace)
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: nginx-ingress
+#   namespace: default  # Ingress for Nginx is in the default namespace
+# spec:
+#   rules:
+#   - http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: nginx-lb
+#             port:
+#               number: 80
