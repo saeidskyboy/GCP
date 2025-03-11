@@ -42,12 +42,6 @@ jobs:
         env:
             GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Deploy Nginx
-        run: kubectl apply -f k8s-configs/deployment.yml
-
-      - name: Deploy LoadBalancer and Ingress
-        run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
-
       - name: Install google.cloud collection
         run: ansible-galaxy collection install google.cloud
 

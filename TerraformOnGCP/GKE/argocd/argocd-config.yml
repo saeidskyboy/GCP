@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp-argocd-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/saeidskyboy/GCP.git
+    targetRevision: HEAD
+    path: TerraformOnGCP/GKE
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default #where we want to deploy our application
+
+    # automated: # it will let argocd to monitor the git and fetch the changes and apply on cluster
+    #   prune: true # if we delete a service.yml, argocd will it from the cluster
+    #   selfHeal: true # if we want argocd to undo/overwrite any manual changes in our cluster, we need to have this option enabled
