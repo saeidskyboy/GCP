@@ -17,8 +17,9 @@ resource "google_container_node_pool" "primary_nodes" {
       role = "general"
     }
     # Add the network tags.  This is the crucial fix!
-    tags = ["gke-${google_container_cluster.gke-cluster.name}-${replace(google_container_cluster.gke-cluster.id, ".*/clusters/", "")}-node"]
-
+    tags = [
+  "gke-${google_container_cluster.gke-cluster.name}-${length(split("/", google_container_cluster.gke-cluster.id)) > 1 ? element(split("/", google_container_cluster.gke-cluster.id), length(split("/", google_container_cluster.gke-cluster.id)) - 1) : google_container_cluster.gke-cluster.id}-node"
+]
     service_account = "terraform@cloud-2255.iam.gserviceaccount.com"
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
