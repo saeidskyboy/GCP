@@ -1,35 +1,140 @@
-1- after terraform apply succeed (all resources created)
-2- if you wanna connect to the cluster via your local laptop, run: gcloud container clusters get-credentials <cluster name> --zone <cluster's zone> --project <project ID>
-3- if you have gcloud and kubectl install on your local machine you have to be able interact with your cluster (kubectl get pods/kubectl get svc etc)
-    check to have "Cloud Resource Manager API" enaled (for GH action interaction)
-our pod can interact with our bucket, go to the pod ->
-    - kubectl get pods -n staging
-    - copy pod name
-    - kubectl exec -n staging -it gcloud-f44f7dfd8-8m7fb -- /bin/bash
-    - gcloud alpha storage ls (we have to see our created bucket here)
-8- have "helm" install on your system -> macos = brew install helm
-9- install ingress-nginx: the helm resource for more details and read: https://kubernetes.github.io/ingress-nginx/deploy/
-in the cli -> helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-10- helm repo update, then by running -> "helm search repo nginx" we have to be able see the ingress nginx details
-in case you will see -> "Error: INSTALLATION FAILED: Unable to continue with install: IngressClass "nginx" in namespace "" exists and cannot be imported... --- then delete the current namespace and use --replace flag in the end ->
-    - kubectl delete ingressclass nginx
-    - helm install my-ing ingress-nginx/ingress-nginx --namespace ingress --version 4.12.0 --values k8s-configs/nginx-values.yml --create-namespace --replace
-12- You can watch the status by running 'kubectl get service --namespace ingress my-ing-ingress-nginx-controller --output wide --watch'
-14- kubectl get ing (we have to have result with nginx-ing)
+# GKE Cluster with Argo CD and Nginx (via GitHub Actions - Simplified)
 
-15- have ansible installed
+This repository provides a simplified setup for deploying a Google Kubernetes Engine (GKE) cluster, installing Argo CD, and deploying a basic Nginx web server, all automated through GitHub Actions.  This version uses **separate, manually triggered workflows** for each stage, making it easier to understand and troubleshoot.  It uses direct `kubectl` commands for Argo CD installation, rather than Helm, for simplicity.
 
-*** When you assign the Kubernetes Engine Cluster Admin role to a service account, it grants the service account permissions to manage Kubernetes Engine clusters, but it does not grant the exact same permissions as the roles/container.clusterAdmin role.
+**What's Included:**
 
-16- for this project I had these roles granted to my service account (some of them were for diff projects so not necessarly all of them are require): 	
-Compute Instance Admin (v1)
-Compute Network Admin
-Compute Security Admin
-Kubernetes Engine Admin
-Kubernetes Engine Developer
-Project IAM Admin
-Role Viewer
-Service Account Key Admin
-Service Account User
-Storage Admin
-Workload Identity User
+*   **GKE Cluster:** A managed Kubernetes cluster on Google Cloud.
+*   **Argo CD:** A declarative, GitOps continuous delivery tool (installed via `kubectl apply`).
+*   **Nginx:** A simple web server to demonstrate a basic application deployment.
+*   **LoadBalancer:** Google Cloud LoadBalancers to expose Nginx and Argo CD.
+*   **GitHub Actions:** Three separate workflows for:
+    *   Creating the GKE cluster (Terraform).
+    *   Deploying Nginx (and creating the `argocd` namespace).
+    *   Installing Argo CD.
+
+**Directory Structure:**
+2.0 Pro Experimental. Lacks access to real-time info and some Gemini features.
+Okay, I understand. You want me to update the README.md to reflect the current setup: three separate workflows (gke-cluster.yaml, deploy-app.yaml, install-argocd.yaml), manual triggering, direct kubectl apply for Argo CD, and the removal of Ansible.  You also want the instructions to be clear and geared towards someone who might be new to this.
+
+Here's a revised README.md, incorporating all the changes and explanations:
+
+Markdown
+
+# GKE Cluster with Argo CD and Nginx (via GitHub Actions - Simplified)
+
+This repository provides a simplified setup for deploying a Google Kubernetes Engine (GKE) cluster, installing Argo CD, and deploying a basic Nginx web server, all automated through GitHub Actions.  This version uses **separate, manually triggered workflows** for each stage, making it easier to understand and troubleshoot.  It uses direct `kubectl` commands for Argo CD installation, rather than Helm, for simplicity.
+
+**What's Included:**
+
+*   **GKE Cluster:** A managed Kubernetes cluster on Google Cloud.
+*   **Argo CD:** A declarative, GitOps continuous delivery tool (installed via `kubectl apply`).
+*   **Nginx:** A simple web server to demonstrate a basic application deployment.
+*   **LoadBalancer:** Google Cloud LoadBalancers to expose Nginx and Argo CD.
+*   **GitHub Actions:** Three separate workflows for:
+    *   Creating the GKE cluster (Terraform).
+    *   Deploying Nginx (and creating the `argocd` namespace).
+    *   Installing Argo CD.
+
+**Directory Structure:**
+
+GCP/
+├── .github/workflows/
+│   ├── deploy-app.yaml         <-- Deploys Nginx and creates argocd namespace
+│   ├── gke-cluster.yaml      <-- Creates the GKE cluster
+│   └── install-argocd.yaml    <-- Installs Argo CD
+│   └── destroy-gke-cluster-workflow.yaml <-- Destroys cluster
+└── TerraformOnGCP/
+└── GKE/
+├── main.tf             <-- Main Terraform configuration
+├── outputs.tf          <-- Terraform outputs
+├── node-pools.tf       <-- Defines the GKE node pool
+├── ansible/            <-- (Now Unused - Can be Removed)
+└── k8s-configs/         <-- Kubernetes YAML manifests
+├── deployment.yml      <-- Nginx deployment
+└── lb-and-ingress-svc.yml  <-- Nginx and ArgoCD LoadBalancer services
+
+**Prerequisites:**
+
+*   **Google Cloud Account:**  A GCP account with billing enabled.
+*   **Google Cloud Project:**  A GCP project (note your Project ID).
+*   **GitHub Account:** A GitHub account to fork this repository.
+*   **gcloud CLI:** Install and configure the Google Cloud SDK (`gcloud`) locally: [https://cloud.google.com/sdk/docs/install](https://cloud.google.com/sdk/docs/install)
+*   **kubectl:** Install `kubectl`: [https://kubernetes.io/docs/tasks/tools/](https://kubernetes.io/docs/tasks/tools/)
+*   **Helm:**  Install Helm: [https://helm.sh/docs/intro/install/](https://helm.sh/docs/intro/install/)
+*   **(Optional) Domain Name:**  For TLS with cert-manager (recommended for production).
+
+**Setup:**
+
+1.  **Fork and Clone:** Fork this repository and clone your fork.
+
+2.  **Service Account:**
+    *   Create a service account in your GCP project (e.g., `terraform-deployer`).
+    *   Grant the following roles to the service account:
+        *   `roles/container.clusterAdmin` (at the *project* level)
+        *   `roles/storage.objectAdmin`
+        *   `roles/iam.serviceAccountUser`
+        *   `roles/compute.instanceAdmin.v1`
+        *   `roles/compute.networkAdmin`
+        *   `roles/compute.securityAdmin`
+        *   `roles/iam.roleViewer`
+        *   `roles/storage.admin`
+    *   Create and download a JSON key file for the service account.
+
+3.  **GitHub Secrets:**
+    *   In your *forked* GitHub repository, go to "Settings" -> "Secrets and variables" -> "Actions".
+    *   Create these repository secrets:
+        *   `GCP_ACCESS_KEY`: Paste the *entire content* of the service account JSON key.
+        *   `GCP_PROJECT_ID`: Your GCP project ID.
+
+4.  **Terraform Backend:**
+    *   Create a GCS bucket to store your Terraform state:
+        ```bash
+        gsutil mb -p <YOUR_PROJECT_ID> -l us-central1 gs://<YOUR_BUCKET_NAME>
+        ```
+    *   Update `TerraformOnGCP/GKE/main.tf`: Change `bucket = "your-terraform-state-bucket"` to use your actual bucket name.
+
+5.  **Enable APIs:** Enable these APIs in your GCP project:
+    *   Compute Engine API
+    *   Kubernetes Engine API
+    *   Cloud Resource Manager API
+    *   IAM API
+
+**Deployment Options:**
+
+This repository is set up with **automatic, sequential workflow triggering**:
+
+*   **`gke-deploy-workflow.yaml`:** Creates the GKE cluster.  Triggered on pushes to the `main` branch in the `TerraformOnGCP/GKE/` directory, *and* manually.
+*   **`app-deploy-workflow.yaml`:** Deploys Nginx. Triggered *automatically* after `gke-deploy-workflow.yaml` completes successfully, *and* manually.
+* **`install-argocd-workflow.yaml`:** Installs ArgoCD. Triggered *automatically* after `app-deploy-workflow.yaml` completes successfully, *and* manually.
+
+**To use only manual triggering:**
+
+1.  **Edit `app-deploy-workflow.yaml`:**  Remove the `workflow_run` trigger, leaving only `workflow_dispatch`:
+
+    ```yaml
+    on:
+      workflow_dispatch:
+    ```
+
+2.  **Edit `install-argocd-workflow.yaml`:** Remove the `workflow_run` trigger, leaving only `workflow_dispatch`:
+     ```yaml
+    on:
+      workflow_dispatch:
+    ```
+
+**Manual Deployment Steps (After Setup):**
+
+1.  **Run `gke-deploy-workflow.yaml`:**  Go to "Actions", select "Deploy GKE Cluster", and click "Run workflow".
+2.  **Run `app-deploy-workflow.yaml``:** After the cluster is created, run the "Deploy Application" workflow.
+3. **Run `install-argocd-workflow.yaml`:** After Nginx is deployed, run the  "Install Argo CD" workflow.
+4.  **Access Nginx and Argo CD:**  Get the external IPs using `kubectl get svc -n default` (for Nginx) and `kubectl get svc -n argocd` (for Argo CD). Access them in your browser.
+
+**Cleaning Up:**
+
+Run the "Destroy GKE Cluster" workflow.
+
+**Important Notes:**
+
+*   **Hardcoded Values:** The `app-deploy-workflow.yaml` and `install-argocd-workflow.yaml` currently uses *hardcoded* values for the cluster name and zone.
+*   **TLS:** This setup initially installs Argo CD *without* TLS (using `--insecure`).  For production, you *must* configure TLS.
