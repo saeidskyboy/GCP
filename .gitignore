@@ -22,4 +22,4 @@ override.tf.json
 
 # Exclude other common irrelevant files
 .DS_Store
-keys.json
+keys.jsonprometheus-3.2.1.linux-amd64/
