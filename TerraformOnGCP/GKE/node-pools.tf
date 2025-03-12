@@ -2,7 +2,7 @@ resource "google_container_node_pool" "primary_nodes" {
   name               = "primary-node-pool"
   cluster            = google_container_cluster.gke-cluster.id
   location           = google_container_cluster.gke-cluster.location
-  initial_node_count = 1
+  initial_node_count = 3
 
   management {
     auto_repair  = true
