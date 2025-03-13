@@ -1,4 +1,4 @@
-name: Install Prometheus
+name: Install Prometheus & Grafana
 
 on:
     workflow_run:
