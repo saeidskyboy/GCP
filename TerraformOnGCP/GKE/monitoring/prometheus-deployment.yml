@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-server
+  namespace: monitoring
+  labels:
+    app: prometheus-server
+    component: server
+    app.kubernetes.io/version: 2.51.1  #  Use your Prometheus *server* version
+spec:
+  replicas: 1  # Start with 1 replica for simplicity
+  selector:
+    matchLabels:
+      app: prometheus-server
+  template:
+    metadata:
+      labels:
+        app: prometheus-server
+        component: server
+    spec:
+      serviceAccountName: prometheus-sa  #  MUST match your ServiceAccount name
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.51.1 # Use a specific, recent version
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"  # Default storage location (inside the container)
+            - "--web.console.templates=/etc/prometheus/consoles"
+            - "--web.console.libraries=/etc/prometheus/console_libraries"
+            - "--web.enable-lifecycle"
+          ports:
+            - containerPort: 9090
+              name: http
+          resources:
+            requests:
+              cpu: 100m  # Adjust as needed
+              memory: 128Mi # Adjust as needed
+            limits:
+              cpu: 200m  # Adjust as needed
+              memory: 256Mi # Adjust as needed
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /etc/prometheus/
+      volumes:
+        - name: prometheus-config-volume
+          configMap:
+            name: prometheus-config  #  MUST match your ConfigMap name

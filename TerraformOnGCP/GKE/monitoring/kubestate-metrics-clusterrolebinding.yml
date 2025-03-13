@@ -1,0 +1,20 @@
+# This file binds the ClusterRole (which defines permissions) to the ServiceAccount that kube-state-metrics will use.
+# This is a crucial part of RBAC configuration.
+
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: ClusterRoleBinding
+# metadata:
+#   labels:
+#     app.kubernetes.io/component: exporter
+#     app.kubernetes.io/name: kube-state-metrics
+#     app.kubernetes.io/part-of: kube-prometheus
+#     app.kubernetes.io/version: 2.15.0
+#   name: kube-state-metrics
+# roleRef:
+#   apiGroup: rbac.authorization.k8s.io
+#   kind: ClusterRole
+#   name: kube-state-metrics
+# subjects:
+# - kind: ServiceAccount
+#   name: kube-state-metrics #This is the name of the ServiceAccount that the kube-state-metrics pods will use. This name must match the serviceAccountName in the kube-state-metrics Deployment 
+#   namespace: kube-system #  Since the kube-state-metrics deployment and service account should be in kube-system (based on where you are installing kube-state-metrics), this namespace value must be kube-system.

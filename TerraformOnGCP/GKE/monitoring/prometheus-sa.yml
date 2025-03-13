@@ -1,0 +1,14 @@
+# prometheus-serviceaccount.yaml file, which defines the Kubernetes ServiceAccount that Prometheus will use
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-sa
+  namespace: monitoring
+  labels:
+    app: prometheus-server  # Consistent with Deployment
+    component: server
+    app.kubernetes.io/version: 2.51.1 # Use your prometheus version
+automountServiceAccountToken: false # Keep it false.
+# Prometheus Server: The Prometheus server, on the other hand, directly interacts with the Kubernetes API server to perform service discovery and scrape metrics.
+#It needs its service account token to authenticate with the API server.
+# If you set automountServiceAccountToken: false, the token won't be mounted into the pod, and Prometheus won't be able to authenticate.

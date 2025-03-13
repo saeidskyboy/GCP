@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-server-lb
+  namespace: monitoring
+  labels:
+    app: prometheus-server
+    component: server
+    app.kubernetes.io/version: 2.51.1
+spec:
+  type: LoadBalancer  # Expose externally
+  ports:
+  - name: http
+    port: 80     # External port (LoadBalancer)
+    targetPort: 9090  # Internal Prometheus port
+    protocol: TCP
+  selector:
+    app: prometheus-server  #  MUST match the labels in prometheus-deployment.yaml

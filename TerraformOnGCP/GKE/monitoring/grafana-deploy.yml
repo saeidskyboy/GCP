@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+    component: core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      serviceAccountName: grafana  # Use the grafana ServiceAccount
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.4.1  # Use a recent, stable Grafana version!
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+          name: http-grafana
+        resources:  # Keep resource requests/limits
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - name: grafana-datasources  # Mount the datasources Secret
+          mountPath: /etc/grafana/provisioning/datasources
+          readOnly: false # Needs to be false for provisioning
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+          readOnly: false
+      volumes:
+      - name: grafana-datasources
+        secret:
+          secretName: grafana-datasources
+      - emptyDir: {}
+        name: grafana-storage

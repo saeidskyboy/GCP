@@ -13,6 +13,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+
     defaults:
       run:
         working-directory: ./TerraformOnGCP/GKE
@@ -42,35 +43,40 @@ jobs:
         env:
             GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Install google.cloud collection
-        run: ansible-galaxy collection install google.cloud
-
       - name: create Monitoring namespace
         run: kubectl create namespace monitoring || true
 
-      - name: Add Prometheus Helm Repository
+      - name: Apply Prometheus Stack Manifests
         run: |
-          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-          helm repo update
+          kubectl apply -f monitoring/prometheus-sa.yml
+          kubectl apply -f monitoring/prometheus-clusterrole.yml
+          kubectl apply -f monitoring/prometheus-clusterrolebinding.yml
+          kubectl apply -f monitoring/prometheus-configmap.yml
+          kubectl apply -f monitoring/prometheus-deployment.yml
+          kubectl apply -f monitoring/prometheus-svc.yml
+          kubectl apply -f monitoring/kubestate-metrics-sa.yml
+          kubectl apply -f monitoring/kubestate-metrics-deploy.yml
+          kubectl apply -f monitoring/kubestate-metrics-svc.yml
+          kubectl apply -f monitoring/grafana-config.yml
+          kubectl apply -f monitoring/grafana-dashboard-datasources.yml
+          kubectl apply -f monitoring/grafana-sa.yml
+          kubectl apply -f monitoring/grafana-deploy.yml
+          kubectl apply -f monitoring/grafana-svc.yml
 
-      # - name: Install Node Exporter
-      #   run: |
-      #     helm install node-exporter prometheus-community/prometheus-node-exporter \
-      #      --namespace monitoring \
-      #      --create-namespace \
-      #      --wait --timeout 180s
-
-      - name: Install Prometheus with Helm
-        run: |
-          helm install prometheus prometheus-community/prometheus \
-           --namespace monitoring \
-           --wait --timeout 600s \
-           -f monitoring/prometheus-values.yml \
-           --debug
-       #   --values my-prometheus-values.yaml  # Uncomment and create this file for custom configuration
-
-      # Optional: Verify Installation
       - name: Verify Prometheus Installation
         run: |
-          kubectl get pods -n monitoring
+          kubectl get pods -n monitoring -o wide
           kubectl get svc -n monitoring
+          kubectl describe deployment -n monitoring prometheus-server
+          kubectl describe pod -n monitoring -l app=prometheus-server
+
+      - name: Verify Kube State Metrics Installation
+        run: |
+          kubectl get pods -n kube-system -o wide
+          kubectl describe deployment -n kube-system kube-state-metrics
+
+      - name: Verify Grafana Installation
+        run: |
+          kubectl get pods -n monitoring -o wide
+          kubectl get svc -n monitoring
+          kubectl describe deployment -n monitoring grafana
