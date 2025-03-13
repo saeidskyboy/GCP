@@ -1,9 +1,4 @@
-# To actually scrape the metrics from Node Exporter, we need to add a scrape_config to our Prometheus configuration.
-# Since we're installing Prometheus using the Helm chart, the best way to do this is to use a values.yaml file.
-
 # k8s-configs/prometheus-values.yml
-
-# k8s-configs/prometheus-values.yml 
 
 server:
   persistentVolume:
@@ -15,36 +10,29 @@ alertmanager:
   persistentVolume:
     enabled: false
 
-# --- Scrape Configurations ---
 extraScrapeConfigs: |
-  - job_name: 'node-exporter'
-    kubernetes_sd_configs:
-      - role: endpoints
-    relabel_configs:
-      - source_labels: [__meta_kubernetes_endpoints_name]
-        action: keep
-        regex: 'node-exporter-prometheus-node-exporter'
-
+  # 1. Kubernetes API Server
   - job_name: 'kubernetes-apiservers'
     kubernetes_sd_configs:
       - role: endpoints
     scheme: https
     tls_config:
       ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      insecure_skip_verify: true  # For testing.  Use proper CA in production.
+      insecure_skip_verify: true  # Use proper CA in production
     bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
     relabel_configs:
       - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
         action: keep
         regex: default;kubernetes;https
 
+  # 2. Kubernetes Nodes (cAdvisor Metrics)
   - job_name: 'kubernetes-nodes'
     kubernetes_sd_configs:
       - role: node
     scheme: https
     tls_config:
       ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      insecure_skip_verify: true  # For testing. Use proper CA in production.
+      insecure_skip_verify: true  # Use proper CA in production
     bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
     relabel_configs:
       - action: labelmap
@@ -54,8 +42,9 @@ extraScrapeConfigs: |
       - source_labels: [__meta_kubernetes_node_name]
         regex: (.+)
         target_label: __metrics_path__
-        replacement: /api/v1/nodes/${1}/proxy/metrics
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor # Important: /cadvisor
 
+  # 3. Kubernetes Pods (with annotations)
   - job_name: 'kubernetes-pods'
     kubernetes_sd_configs:
       - role: pod
@@ -81,29 +70,19 @@ extraScrapeConfigs: |
         action: replace
         target_label: kubernetes_pod_name
 
-  - job_name: 'kubernetes-cadvisor'
-    kubernetes_sd_configs:
-      - role: node
-    scheme: https
-    tls_config:
-      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      insecure_skip_verify: true
-    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-    relabel_configs:
-      - action: labelmap
-        regex: __meta_kubernetes_node_label_(.+)
-      - target_label: __address__
-        replacement: kubernetes.default.svc:443
-      - source_labels: [__meta_kubernetes_node_name]
-        regex: (.+)
-        target_label: __metrics_path__
-        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
-
+  # 4. kube-state-metrics (Corrected)
   - job_name: 'kube-state-metrics'
     static_configs:
-      - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080'] #  Replace with the *actual* service name and namespace
+      - targets: ['prometheus-kube-state-metrics.monitoring.svc.cluster.local:8080'] # Correct namespace
 
-  # --- Nginx Scrape Config (Option 2 - Basic HTTP Check) ---
+  # 5. Nginx (Assuming metrics exposed on /metrics)
   - job_name: 'nginx'
     static_configs:
-      - targets: ['nginx-lb:80']  # Use the *service name* and port.
+      - targets: ['nginx-lb.default.svc.cluster.local:80']  # Fully qualified name
+
+  # 6. Argo CD Server (If it exposes metrics)
+  - job_name: 'argocd-server'
+    static_configs:
+      - targets: ['argocd-server.argocd.svc.cluster.local:8083'] # Use the metrics port!
+
+  # REMOVED: node-exporter scrape config (because we're using GKE's built-in)

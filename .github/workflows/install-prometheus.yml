@@ -52,23 +52,22 @@ jobs:
         run: |
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
-
-      - name: Install Node Exporter
-        run: |
-          helm install node-exporter prometheus-community/prometheus-node-exporter \
-           --namespace monitoring \
-           --create-namespace \
-           --wait --timeout 180s
+          
+      # - name: Install Node Exporter
+      #   run: |
+      #     helm install node-exporter prometheus-community/prometheus-node-exporter \
+      #      --namespace monitoring \
+      #      --create-namespace \
+      #      --wait --timeout 180s
 
       - name: Install Prometheus with Helm
         run: |
           helm install prometheus prometheus-community/prometheus \
-            --namespace monitoring \
-            --create-namespace \
-            --wait --timeout 600s \
-            -f monitoring/prometheus-values.yml \
-            --debug
-        #   --values my-prometheus-values.yaml  # Uncomment and create this file for custom configuration
+           --namespace monitoring \
+           --wait --timeout 600s \
+           -f k8s-configs/prometheus-values.yml \
+           --debug
+       #   --values my-prometheus-values.yaml  # Uncomment and create this file for custom configuration
 
       # Optional: Verify Installation
       - name: Verify Prometheus Installation
