@@ -66,7 +66,7 @@ jobs:
             --namespace monitoring \
             --create-namespace \
             --wait --timeout 600s \
-            -f monitoring/prometheus-values.yml \ #this file contains lb svc creation as well
+            -f monitoring/prometheus-values.yml \
             --debug
         #   --values my-prometheus-values.yaml  # Uncomment and create this file for custom configuration
 

@@ -61,4 +61,4 @@ jobs:
         shell: bash
 
       - name: configure argocd with app CRD
-        run: kubectl apply -f TerraformOnGCP/GKE/argocd/argocd-config.yml
+        run: kubectl apply -f argocd/argocd-config.yml
