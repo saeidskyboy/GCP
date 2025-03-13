@@ -79,20 +79,20 @@ jobs:
           kubectl apply -f monitoring/grafana-deploy.yml
           kubectl apply -f monitoring/grafana-svc.yml
 
-      - name: Verify Prometheus Installation
-        run: |
-          kubectl get pods -n monitoring -o wide
-          kubectl get svc -n monitoring
-          kubectl describe deployment -n monitoring prometheus-server
-          kubectl describe pod -n monitoring -l app=prometheus-server
+      # - name: Verify Prometheus Installation
+      #   run: |
+      #     kubectl get pods -n monitoring -o wide
+      #     kubectl get svc -n monitoring
+      #     kubectl describe deployment -n monitoring prometheus-server
+      #     kubectl describe pod -n monitoring -l app=prometheus-server
 
-      - name: Verify Kube State Metrics Installation
-        run: |
-          kubectl get pods -n kube-system -o wide
-          kubectl describe deployment -n kube-system kube-state-metrics
+      # - name: Verify Kube State Metrics Installation
+      #   run: |
+      #     kubectl get pods -n kube-system -o wide
+      #     kubectl describe deployment -n kube-system kube-state-metrics
 
-      - name: Verify Grafana Installation
-        run: |
-          kubectl get pods -n monitoring -o wide
-          kubectl get svc -n monitoring
-          kubectl describe deployment -n monitoring grafana
+      # - name: Verify Grafana Installation
+      #   run: |
+      #     kubectl get pods -n monitoring -o wide
+      #     kubectl get svc -n monitoring
+      #     kubectl describe deployment -n monitoring grafana

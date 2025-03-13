@@ -70,13 +70,13 @@ data:
 
       - job_name: 'kube-state-metrics'
         static_configs:
-          - targets: ['kube-state-metrics.kubesystem.svc.cluster.local:8080']
+          - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
 
       - job_name: 'nginx'
         static_configs:
           - targets: ['nginx-lb.default.svc.cluster.local:80']
 
       # Example: Scraping Argo CD metrics (if exposed) - uncomment if needed
-      - job_name: 'argocd-server'
-       static_configs:
-         - targets: ['argocd-server.argocd.svc.cluster.local:8083']
+      # - job_name: 'argocd-server'
+      #  static_configs:
+      #    - targets: ['argocd-server.argocd.svc.cluster.local:8083']
