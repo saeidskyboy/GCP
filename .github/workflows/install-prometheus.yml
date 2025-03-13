@@ -43,6 +43,22 @@ jobs:
         env:
             GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
+      # --- Cleanup (Add these steps) ---
+      - name: Delete Existing Prometheus Resources (if any)
+        run: |
+          kubectl delete deployment -n monitoring prometheus-server --ignore-not-found=true
+          kubectl delete serviceaccount -n monitoring prometheus-sa --ignore-not-found=true
+          kubectl delete configmap -n monitoring prometheus-config --ignore-not-found=true
+          kubectl delete service -n monitoring prometheus-server-lb --ignore-not-found=true
+          kubectl delete deployment -n kube-system kube-state-metrics --ignore-not-found=true
+          kubectl delete serviceaccount -n kube-system kube-state-metrics --ignore-not-found=true
+          kubectl delete service -n kube-system kube-state-metrics --ignore-not-found=true
+          kubectl delete deployment -n monitoring grafana --ignore-not-found=true
+          kubectl delete serviceaccount -n monitoring grafana --ignore-not-found=true
+          kubectl delete configmap -n monitoring grafana-datasources --ignore-not-found=true
+          kubectl delete configmap -n monitoring grafana-config --ignore-not-found=true
+          kubectl delete service -n monitoring grafana --ignore-not-found=true
+
       - name: create Monitoring namespace
         run: kubectl create namespace monitoring || true
 
