@@ -15,7 +15,7 @@ spec:
   ports:
   - name: http # A name for the port
     port: 3000 # This is the external port that the Service will listen on. 3000 is the default Grafana port
-    targetPort: http # This refers to the port inside the Grafana container. http is likely defined as port 3000 in container.
+    targetPort: 3000 # This refers to the port inside the Grafana container. http is likely defined as port 3000 in container.
   selector:
     app.kubernetes.io/component: grafana
     app.kubernetes.io/name: grafana
