@@ -26,11 +26,11 @@ spec:
           name: http-grafana
         resources:  # Keep resource requests/limits
           requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
             cpu: 100m
             memory: 128Mi
-          limits:
-            cpu: 200m
-            memory: 256Mi
         volumeMounts:
         - name: grafana-datasources  # Mount the datasources Secret
           mountPath: /etc/grafana/provisioning/datasources
