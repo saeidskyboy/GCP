@@ -1,82 +1,33 @@
-# This file defines how Prometheus scrapes metrics.
-
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus-config
-  namespace: monitoring
-data:
-  prometheus.yml: |
-    global:
-      scrape_interval: 15s  # How often to scrape targets
-      evaluation_interval: 15s # How often to evaluate rules
-
-    scrape_configs:
-      - job_name: 'kubernetes-apiservers'
+# ---  Kube State Metrics (via RBAC Proxy) ---
+      - job_name: 'kube-state-metrics'
         kubernetes_sd_configs:
+          # Discover endpoints of the service in kube-system namespace
           - role: endpoints
+            namespaces:
+              names: [kube-system]
+        # Scrape the RBAC proxy using HTTPS
         scheme: https
+        # Add TLS config - use CA file or insecure for testing
         tls_config:
           ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-          insecure_skip_verify: true  # For testing. Use proper CA in production.
+          # Or for testing only:
+          insecure_skip_verify: true
+          # Authenticate using Prometheus's service account token
         bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         relabel_configs:
-          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          # Keep only endpoints associated with the 'kube-state-metrics' service
+          # (Matches based on the service's 'app.kubernetes.io/name' label)
+          - source_labels: [__meta_kubernetes_service_label_app_kubernetes_io_name]
             action: keep
-            regex: default;kubernetes;https
-
-      - job_name: 'kubernetes-nodes'  # This will scrape cAdvisor
-        kubernetes_sd_configs:
-          - role: node
-        scheme: https
-        tls_config:
-          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-          insecure_skip_verify: true  # For testing
-        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-        relabel_configs:
-          - action: labelmap
-            regex: __meta_kubernetes_node_label_(.+)
-          - target_label: __address__
-            replacement: kubernetes.default.svc:443
-          - source_labels: [__meta_kubernetes_node_name]
-            regex: (.+)
-            target_label: __metrics_path__
-            replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor  # cAdvisor metrics
-
-      - job_name: 'kubernetes-pods'
-        kubernetes_sd_configs:
-          - role: pod
-        relabel_configs:
-          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            regex: kube-state-metrics
+          # Keep only the endpoint port named 'https-main' (which is 8443)
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
             action: keep
-            regex: true
-          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-            action: replace
-            target_label: __metrics_path__
-            regex: (.+)
-          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-            action: replace
-            regex: ([^:]+)(?::\d+)?;(\d+)
-            replacement: $1:$2
-            target_label: __address__
+            regex: https-main
+          # Optional: Map labels from the pod/service onto the metrics 
           - action: labelmap
             regex: __meta_kubernetes_pod_label_(.+)
           - source_labels: [__meta_kubernetes_namespace]
-            action: replace
-            target_label: kubernetes_namespace
-          - source_labels: [__meta_kubernetes_pod_name]
-            action: replace
-            target_label: kubernetes_pod_name
-
-      - job_name: 'kube-state-metrics'
-        static_configs:
-          - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
-
-      - job_name: 'nginx'
-        static_configs:
-          - targets: ['nginx-lb.default.svc.cluster.local:80']
-
-      # Example: Scraping Argo CD metrics (if exposed) - uncomment if needed
-      # - job_name: 'argocd-server'
-      #  static_configs:
-      #    - targets: ['argocd-server.argocd.svc.cluster.local:8083']
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: service

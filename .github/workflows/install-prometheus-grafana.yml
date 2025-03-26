@@ -78,6 +78,9 @@ jobs:
           kubectl apply -f monitoring/grafana-sa.yml
           kubectl apply -f monitoring/grafana-deploy.yml
           kubectl apply -f monitoring/grafana-svc.yml
+          kubectl apply -f monitoring/node-exporter-sa.yml
+          kubectl apply -f monitoring/nodeexporter-daemonset.yml
+          kubectl apply -f monitoring/nodeexporter-svc.yml
 
       # - name: Verify Prometheus Installation
       #   run: |
