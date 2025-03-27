@@ -1,3 +1,4 @@
+# monitoring/prometheus-deployment.yml (Modified with SA Token Mount)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,9 +40,37 @@ spec:
               cpu: 100m  # Adjust as needed
               memory: 128Mi # Adjust as needed
           volumeMounts:
+            # Mount for prometheus.yml config file
             - name: prometheus-config-volume
               mountPath: /etc/prometheus/
+            # --- Mount for Service Account Token ---
+            - name: kube-api-access # Matches the volume name below
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount # Standard path for token
+              readOnly: true
       volumes:
+        # Volume definition for prometheus.yml config file
         - name: prometheus-config-volume
           configMap:
             name: prometheus-config  #  MUST match your ConfigMap name
+        # --- Volume definition for Service Account Token ---
+        # This uses a projected volume to securely provide the token,
+        # the cluster CA cert, and the namespace.
+        - name: kube-api-access # Name used in volumeMounts
+          projected:
+            defaultMode: 420
+            sources:
+            - serviceAccountToken:
+                path: token # File name within the mount path
+                expirationSeconds: 3600 # Token expiry time (1 hour)
+                # audience: api # Optional audience, might be needed in some setups
+            - configMap:
+                # Standard ConfigMap containing the cluster's CA certificate
+                name: kube-root-ca.crt
+                items:
+                - key: ca.crt
+                  path: ca.crt # File name for the CA cert within the mount path
+            - downwardAPI:
+                items:
+                - path: namespace # File name for the namespace within the mount path
+                  fieldRef:
+                    fieldPath: metadata.namespace # Gets the pod's own namespace
