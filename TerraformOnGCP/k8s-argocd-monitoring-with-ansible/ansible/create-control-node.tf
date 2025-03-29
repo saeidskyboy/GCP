@@ -80,7 +80,7 @@ resource "google_compute_firewall" "allow-ssh" {
         protocol = "tcp"
         ports    = ["22"]
     }
-    source_ranges = ["0.0.0.0/0"] # only for test purposes only, restrict to your IP or CIDR range in production
+    source_ranges = ["0.0.0.0/0"] # only for test purposes only, restrict to your IP or CIDR range in production 
   
 }
 
