@@ -34,11 +34,11 @@ spec:
               name: http
           resources:
             requests:
-              cpu: 50m  # Adjust as needed
-              memory: 64Mi # Adjust as needed
-            limits:
               cpu: 100m  # Adjust as needed
-              memory: 128Mi # Adjust as needed
+              memory: 256Mi # Adjust as needed
+            limits:
+              cpu: 500m  # Adjust as needed
+              memory: 512Mi # Adjust as needed
           volumeMounts:
             # Mount for prometheus.yml config file
             - name: prometheus-config-volume
