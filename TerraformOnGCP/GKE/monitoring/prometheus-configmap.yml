@@ -162,11 +162,16 @@ data:
             action: keep
             regex: 8083 # Assumed metrics port
           - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_container_port_number]
-            action: replace; regex: (.+);(.+); target_label: __address__; replacement: ${1}:${2}
+            action: replace
+            regex: (.+);(.+)
+            target_label: __address__
+            replacement: ${1}:${2}
           - action: labelmap
             regex: __meta_kubernetes_pod_label_(.+)
-          - source_labels: [__meta_kubernetes_namespace]; target_label: namespace
-          - source_labels: [__meta_kubernetes_pod_name]; target_label: pod_name
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace # Corrected Line
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod_name
 
       - job_name: 'argocd-repo-server-metrics'
         kubernetes_sd_configs:
@@ -178,13 +183,18 @@ data:
             regex: argocd-repo-server
           - source_labels: [__meta_kubernetes_pod_container_port_number]
             action: keep
-            regex: 8081 # Assumed metrics port
+            regex: 8081 # metrics port
           - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_container_port_number]
-            action: replace; regex: (.+);(.+); target_label: __address__; replacement: ${1}:${2}
+            action: replace
+            regex: (.+);(.+)
+            target_label: __address__
+            replacement: ${1}:${2}
           - action: labelmap
             regex: __meta_kubernetes_pod_label_(.+)
-          - source_labels: [__meta_kubernetes_namespace]; target_label: namespace
-          - source_labels: [__meta_kubernetes_pod_name]; target_label: pod_name
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod_name
 
       - job_name: 'argocd-application-controller-metrics'
         kubernetes_sd_configs:
@@ -196,10 +206,15 @@ data:
             regex: argocd-application-controller
           - source_labels: [__meta_kubernetes_pod_container_port_number]
             action: keep
-            regex: 8082 # Assumed metrics port
+            regex: 8082 # metrics port
           - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_container_port_number]
-            action: replace; regex: (.+);(.+); target_label: __address__; replacement: ${1}:${2}
+            action: replace
+            regex: (.+);(.+)
+            target_label: __address__
+            replacement: ${1}:${2}
           - action: labelmap
             regex: __meta_kubernetes_pod_label_(.+)
-          - source_labels: [__meta_kubernetes_namespace]; target_label: namespace
-          - source_labels: [__meta_kubernetes_pod_name]; target_label: pod_name
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod_name
