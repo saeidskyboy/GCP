@@ -45,9 +45,6 @@ jobs:
       - name: Install google.cloud collection
         run: ansible-galaxy collection install google.cloud
 
-      - name: Create Argo CD Namespace svc
-        run: kubectl apply -f argocd/argocd-ns.yml
-
       - name: Install Argo CD
         run: |
           kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.3/manifests/install.yaml

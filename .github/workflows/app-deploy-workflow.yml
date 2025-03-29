@@ -44,6 +44,9 @@ jobs:
 
       - name: Deploy Nginx
         run: kubectl apply -f k8s-configs/deployment.yml
+      
+      - name: Create Argo CD Namespace svc
+        run: kubectl apply -f argocd/argocd-ns.yml
 
       - name: Create LoadBalancer svc
         run: kubectl apply -f k8s-configs/lb-and-ingress-svc.yml
