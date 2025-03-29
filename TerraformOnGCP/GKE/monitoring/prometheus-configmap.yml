@@ -16,8 +16,8 @@ data:
       # Discovers node-exporter pods in 'monitoring' namespace via HTTP
       - job_name: 'node-exporter'
         kubernetes_sd_configs:
-          role: pod
-          namespaces: [monitoring]
+          - role: pod
+            namespaces: [monitoring]
         scheme: http
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
@@ -41,8 +41,8 @@ data:
       # !!! ADJUST namespace, labels, port regex IF YOUR SETUP DIFFERS !!!
       - job_name: 'nginx'
         kubernetes_sd_configs:
-          role: pod
-          namespaces: [default]
+          - role: pod
+            namespaces: [default]
         scheme: http
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app]
