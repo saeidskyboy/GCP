@@ -30,7 +30,7 @@ spec:
             - "--web.console.libraries=/etc/prometheus/console_libraries"
             - "--web.enable-lifecycle"
           ports:
-            - containerPort: 8080
+            - containerPort: 9090
               name: http
           resources:
             requests:
