@@ -1,11 +1,11 @@
 name: Deploy GKE Cluster
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - 'TerraformOnGCP/k8s-argocd-monitoring-with-github-workflow/**'
+  # push:
+    # branches:
+    #   - "main"
+    # paths:
+    #   - 'TerraformOnGCP/k8s-argocd-monitoring-with-github-workflow/**'
   workflow_dispatch:
 
 jobs:
