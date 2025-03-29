@@ -1,10 +1,10 @@
 name: Create svc & Deploy nginx
 
 on:
-  workflow_run:
-    workflows: ["Deploy GKE Cluster"]
-    types:
-      - completed
+  # workflow_run:
+  #   workflows: ["Deploy GKE Cluster"]
+  #   types:
+  #     - completed
   workflow_dispatch:
 
 jobs:

@@ -76,6 +76,7 @@ spec:
             fieldRef:
               fieldPath: status.podIP
         name: kube-rbac-proxy
+        image: quay.io/brancz/kube-rbac-proxy:v0.15.0
         ports:
         - containerPort: 9100
           hostPort: 9100
