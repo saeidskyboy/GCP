@@ -1,0 +1,83 @@
+name: Install Prometheus & Grafana
+
+on:
+    # workflow_run:
+    #   workflows: ["Install Argo CD"]
+    #   types:
+    #     - completed
+    workflow_dispatch:
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    defaults:
+      run:
+        working-directory: ./TerraformOnGCP/k8s-argocd-monitoring-with-ansible
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          token_format: 'access_token'
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          install_components: gke-gcloud-auth-plugin
+  
+      - name: connect to GKE
+        run: |
+            gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+            gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project ${{ secrets.GCP_PROJECT_ID }}
+        env:
+            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_ACCESS_KEY }} #SA
+
+      # --- Cleanup (Add these steps) ---
+      - name: Delete Existing Prometheus Resources (if any)
+        run: |
+          kubectl delete deployment -n monitoring prometheus-server --ignore-not-found=true
+          kubectl delete serviceaccount -n monitoring prometheus-sa --ignore-not-found=true
+          kubectl delete configmap -n monitoring prometheus-config --ignore-not-found=true
+          kubectl delete service -n monitoring prometheus-server-lb --ignore-not-found=true
+          kubectl delete deployment -n kube-system kube-state-metrics --ignore-not-found=true
+          kubectl delete serviceaccount -n kube-system kube-state-metrics --ignore-not-found=true
+          kubectl delete service -n kube-system kube-state-metrics --ignore-not-found=true
+          kubectl delete deployment -n monitoring grafana --ignore-not-found=true
+          kubectl delete serviceaccount -n monitoring grafana --ignore-not-found=true
+          kubectl delete configmap -n monitoring grafana-datasources --ignore-not-found=true
+          kubectl delete configmap -n monitoring grafana-config --ignore-not-found=true
+          kubectl delete service -n monitoring grafana --ignore-not-found=true
+
+      - name: create Monitoring namespace
+        run: kubectl create namespace monitoring || true
+
+      - name: Apply Prometheus Stack Manifests
+        run: |
+          kubectl apply -f monitoring/prometheus-sa.yml
+          kubectl apply -f monitoring/prometheus-clusterrole.yml
+          kubectl apply -f monitoring/prometheus-clusterrolebinding.yml
+          kubectl apply -f monitoring/prometheus-configmap.yml
+          kubectl apply -f monitoring/prometheus-deployment.yml
+          kubectl apply -f monitoring/prometheus-svc.yml
+          kubectl apply -f monitoring/kubestate-metrics-sa.yml
+          kubectl apply -f monitoring/kubestate-metrics-deploy.yml
+          kubectl apply -f monitoring/kubestate-metrics-svc.yml
+          kubectl apply -f monitoring/grafana-config.yml
+          kubectl apply -f monitoring/grafana-dashboard-datasources.yml
+          kubectl apply -f monitoring/grafana-sa.yml
+          kubectl apply -f monitoring/grafana-deploy.yml
+          kubectl apply -f monitoring/grafana-svc.yml
+          kubectl apply -f monitoring/node-exporter-sa.yml
+          kubectl apply -f monitoring/nodeexporter-daemonset.yml
+          kubectl apply -f monitoring/nodeexporter-svc.yml
