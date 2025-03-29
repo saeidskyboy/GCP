@@ -1,4 +1,5 @@
-name: Deploy GKE Cluster
+# Deploy k8s cluster and create a VM dedicated to ansible node controller
+name: k8s cluster & Ansible Controller
 
 on:
   push:
