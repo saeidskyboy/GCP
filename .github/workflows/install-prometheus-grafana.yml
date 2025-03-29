@@ -1,10 +1,10 @@
 name: Install Prometheus & Grafana
 
 on:
-    # workflow_run:
-    #   workflows: ["Install Argo CD"]
-    #   types:
-    #     - completed
+    workflow_run:
+      workflows: ["Install Argo CD"]
+      types:
+        - completed
     workflow_dispatch:
 
 jobs:

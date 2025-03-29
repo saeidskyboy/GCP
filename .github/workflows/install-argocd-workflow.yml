@@ -1,10 +1,10 @@
 name: Install Argo CD
 
 on:
-    # workflow_run:
-    #   workflows: ["Create svc & Deploy nginx"]
-    #   types:
-    #     - completed
+    workflow_run:
+      workflows: ["Create svc & Deploy nginx"]
+      types:
+        - completed
     workflow_dispatch:
 
 jobs:
@@ -44,6 +44,9 @@ jobs:
 
       - name: Install google.cloud collection
         run: ansible-galaxy collection install google.cloud
+
+      - name: Create Argo CD Namespace svc
+        run: kubectl apply -f argocd/argocd-ns.yml
 
       - name: Install Argo CD
         run: |
