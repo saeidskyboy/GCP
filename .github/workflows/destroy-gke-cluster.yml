@@ -13,7 +13,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./TerraformOnGCP/GKE  # Set working directory
+        working-directory: ./TerraformOnGCP/k8s-argocd-monitoring-with-github-workflow  # Set working directory
 
     steps:
       - name: Checkout code

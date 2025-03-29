@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/saeidskyboy/GCP.git
     targetRevision: HEAD
-    path: TerraformOnGCP/GKE
+    path: TerraformOnGCP/k8s-argocd-monitoring-with-github-workflow
   destination:
     server: https://kubernetes.default.svc
     namespace: default #where we want to deploy our application

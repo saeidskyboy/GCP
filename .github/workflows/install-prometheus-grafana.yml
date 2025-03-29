@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./TerraformOnGCP/GKE
+        working-directory: ./TerraformOnGCP/k8s-argocd-monitoring-with-github-workflow
 
     steps:
       - name: Checkout code

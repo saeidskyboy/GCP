@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
     paths:
-      - 'TerraformOnGCP/GKE/**'
+      - 'TerraformOnGCP/k8s-argocd-monitoring-with-github-workflow/**'
   workflow_dispatch:
 
 jobs:
