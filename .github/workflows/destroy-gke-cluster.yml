@@ -33,7 +33,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         env:
-            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_ACCESS_KEY }} #SA
 
       - name: Initialize Terraform
         run: terraform init

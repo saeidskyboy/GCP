@@ -1,10 +1,10 @@
 name: Install Argo CD
 
 on:
-    # workflow_run:
-    #   workflows: ["Create svc & Deploy nginx"]
-    #   types:
-    #     - completed
+    workflow_run:
+      workflows: ["Create svc & Deploy nginx"]
+      types:
+        - completed
     workflow_dispatch:
 
 jobs:
@@ -40,7 +40,7 @@ jobs:
             gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
             gcloud container clusters get-credentials gke-cluster --zone us-central1-f --project ${{ secrets.GCP_PROJECT_ID }}
         env:
-            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_ACCESS_KEY }} #SA
 
       - name: Install google.cloud collection
         run: ansible-galaxy collection install google.cloud

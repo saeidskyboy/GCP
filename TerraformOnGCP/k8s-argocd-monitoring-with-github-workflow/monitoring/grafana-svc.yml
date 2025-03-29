@@ -1,0 +1,19 @@
+# defines the Kubernetes Service for accessing the Grafana UI
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: grafana
+    component: core
+    app.kubernetes.io/version: 10.4.1
+  name: grafana-lb
+  namespace: monitoring
+spec:
+  type: LoadBalancer # This line tells Kubernetes to create a Service of type LoadBalancer. GKE will automatically provision a Google Cloud Load Balancer and assign it an external IP address.
+  ports:
+  - name: http # A name for the port
+    port: 80 # external (LB port)
+    targetPort: 3000 # This refers to the port inside the Grafana container. http is likely defined as port 3000 in container.
+  selector:
+    app: grafana
