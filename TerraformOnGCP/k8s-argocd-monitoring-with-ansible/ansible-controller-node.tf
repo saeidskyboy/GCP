@@ -46,29 +46,34 @@ resource "google_compute_instance" "ansible_control_node" {
     # Define key path (using root's home dir as scripts often run as root)
     # If you need the key for a specific user, adjust path and permissions.
     KEY_PATH="/root/.ssh/id_ed25519_ansible_controller"
-    KEY_DIR=$(dirname "$KEY_PATH")
+    # Use $$ to escape $ for Terraform interpolation
+    KEY_DIR=$$(dirname "$$KEY_PATH") 
     KEY_COMMENT="ansible-controller"
 
     # Ensure .ssh directory exists with correct permissions (700)
-    mkdir -p "$KEY_DIR"
-    chmod 700 "$KEY_DIR"
+    # Use $$ to escape $ for Terraform interpolation
+    mkdir -p "$$KEY_DIR"
+    chmod 700 "$$KEY_DIR"
 
     # Generate the ed25519 key pair without a passphrase (-N '')
     # -t type, -f filename, -C comment
     # This will overwrite the key if the script runs again (e.g., instance restart with script enabled)
-    ssh-keygen -t ed25519 -f "$KEY_PATH" -N '' -C "$KEY_COMMENT"
+    # Use $$ to escape $ for Terraform interpolation
+    ssh-keygen -t ed25519 -f "$$KEY_PATH" -N '' -C "$$KEY_COMMENT"
 
     echo "### Setting key permissions ###"
-    chmod 600 "${KEY_PATH}"     # Private key readable only by owner
-    chmod 644 "${KEY_PATH}.pub" # Public key readable by all
+    # Use $$ or $${} to escape $ for Terraform interpolation
+    chmod 600 "$${KEY_PATH}"     # Private key readable only by owner
+    chmod 644 "$${KEY_PATH}.pub" # Public key readable by all
 
     echo "### Ansible Controller Public Key Output ###"
-    echo "--- START ANSIBLE CONTROLLER PUBLIC KEY (${KEY_PATH}.pub) ---"
-    cat "${KEY_PATH}.pub"
+    # Use $$ or $${} to escape $ for Terraform interpolation
+    echo "--- START ANSIBLE CONTROLLER PUBLIC KEY ($${KEY_PATH}.pub) ---"
+    cat "$${KEY_PATH}.pub"
     echo "--- END ANSIBLE CONTROLLER PUBLIC KEY ---"
     echo "### Startup script finished ###"
   EOF
-
+  
   # Required for deleting instances that have attached disks, useful for lifecycle mgmt
   allow_stopping_for_update = true
 }
