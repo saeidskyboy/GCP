@@ -4,7 +4,7 @@ resource "google_compute_network" "vpc_ansible" {
 }
 
 resource "google_compute_instance" "ansible_control_node" {
-  name         = "ansible-control-node"
+  name         = "ansible-controller-node"
   machine_type = "e2-micro"
   zone         = "us-central1-a"
 
@@ -47,7 +47,7 @@ resource "google_compute_instance" "ansible_control_node" {
     # If you need the key for a specific user, adjust path and permissions.
     KEY_PATH="/root/.ssh/id_ed25519_ansible_controller"
     # Use $$ to escape $ for Terraform interpolation
-    KEY_DIR=$$(dirname "$$KEY_PATH") 
+    KEY_DIR=$$(dirname "$$KEY_PATH")
     KEY_COMMENT="ansible-controller"
 
     # Ensure .ssh directory exists with correct permissions (700)
