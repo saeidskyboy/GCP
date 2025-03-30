@@ -2,8 +2,9 @@
 # WARNING: This assumes GKE nodes use project metadata SSH keys.
 # Adjust if using OS Login or other methods. This also MERGES keys.
 
-data "google_compute_project_metadata" "default" {
-  project = "your-gcp-project-id" # Replace with your project ID
+resource "google_compute_project_metadata" "default" {
+  project = var.gcp_project_id
+  metadata = {}
 }
 
 resource "google_compute_project_metadata" "project_metadata_with_ansible_key" {
