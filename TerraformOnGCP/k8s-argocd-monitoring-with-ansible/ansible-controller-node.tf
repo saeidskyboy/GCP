@@ -27,7 +27,7 @@ resource "google_compute_instance" "ansible_control_node" {
   # Example: Add a tag
   tags = ["ansible-controller"]
 
- # Read the script content from the external file
+ # Read the script content from the external file - it takes ~ 15 min to all scripts will be executed
   metadata_startup_script = file("${path.module}/ansible/startup-script.sh")
   
   # Required for deleting instances that have attached disks, useful for lifecycle mgmt 

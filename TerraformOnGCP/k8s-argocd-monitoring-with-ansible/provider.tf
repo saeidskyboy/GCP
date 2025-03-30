@@ -11,10 +11,15 @@ terraform {
       source = "hashicorp/google"
       version = "5.33.0"
     }
+    # since we are going to generate the SSH key pair using Terraform so we need to have the tls provider
+  tls = {
+      source  = "hashicorp/tls"
+      version = ">= 4.0"
+    }
   }
 }
 
 provider "google" {
-  project     = "cloud-2255"
+  project     = var.gcp_project_id 
   region      = "us-cenetral1"
   }
