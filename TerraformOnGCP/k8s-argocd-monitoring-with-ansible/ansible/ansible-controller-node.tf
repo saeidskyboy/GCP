@@ -27,52 +27,8 @@ resource "google_compute_instance" "ansible_control_node" {
   # Example: Add a tag
   tags = ["ansible-controller"]
 
-  # --- Startup Script ---
-  # Installs prerequisites, Ansible, generates an SSH key, and outputs the public key.
-  metadata_startup_script = <<-EOF
-    #!/bin/bash
-    set -e # Exit immediately if a command exits with a non-zero status.
-
-    echo "### Updating package list ###"
-    apt-get update -y
-
-    echo "### Installing prerequisites: python3, pip, git ###"
-    apt-get install -y python3 python3-pip git
-
-    echo "### Installing Ansible via pip ###"
-    pip3 install ansible
-
-    echo "### Generating SSH key for Ansible Controller ###"
-    # Define key path (using root's home dir as scripts often run as root)
-    # If you need the key for a specific user, adjust path and permissions.
-    KEY_PATH="/root/.ssh/id_ed25519_ansible_controller"
-    # Use $$ to escape $ for Terraform interpolation
-    KEY_DIR=$$(dirname "$$KEY_PATH")
-    KEY_COMMENT="ansible-controller"
-
-    # Ensure .ssh directory exists with correct permissions (700)
-    # Use $$ to escape $ for Terraform interpolation
-    mkdir -p "$$KEY_DIR"
-    chmod 700 "$$KEY_DIR"
-
-    # Generate the ed25519 key pair without a passphrase (-N '')
-    # -t type, -f filename, -C comment
-    # This will overwrite the key if the script runs again (e.g., instance restart with script enabled)
-    # Use $$ to escape $ for Terraform interpolation
-    ssh-keygen -t ed25519 -f "$$KEY_PATH" -N '' -C "$$KEY_COMMENT"
-
-    echo "### Setting key permissions ###"
-    # Use $$ or $${} to escape $ for Terraform interpolation
-    chmod 600 "$${KEY_PATH}"     # Private key readable only by owner
-    chmod 644 "$${KEY_PATH}.pub" # Public key readable by all
-
-    echo "### Ansible Controller Public Key Output ###"
-    # Use $$ or $${} to escape $ for Terraform interpolation
-    echo "--- START ANSIBLE CONTROLLER PUBLIC KEY ($${KEY_PATH}.pub) ---"
-    cat "$${KEY_PATH}.pub"
-    echo "--- END ANSIBLE CONTROLLER PUBLIC KEY ---"
-    echo "### Startup script finished ###"
-  EOF
+ # Read the script content from the external file
+  metadata_startup_script = file("${path.module}startup-script.sh")
   
   # Required for deleting instances that have attached disks, useful for lifecycle mgmt
   allow_stopping_for_update = true
