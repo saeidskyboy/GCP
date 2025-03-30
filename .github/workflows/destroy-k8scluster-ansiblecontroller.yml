@@ -1,4 +1,4 @@
-name: Destroy GKE Cluster
+name: Destroy all configs (clean up)
 
 on:
   workflow_dispatch:  # Only allow manual triggering for destruction
