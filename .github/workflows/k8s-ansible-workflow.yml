@@ -2,11 +2,11 @@
 name: k8s cluster & Ansible Controller
 
 on:
-  # push:
-  #   branches:
-  #     - "main"
-  #   paths:
-  #     - 'TerraformOnGCP/k8s-argocd-monitoring-with-ansible/**'
+  push:
+    branches:
+      - "main"
+    paths:
+      - 'TerraformOnGCP/k8s-argocd-monitoring-with-ansible/**'
   workflow_dispatch:
 
 jobs:

@@ -2,7 +2,7 @@
 # Note: Managing project metadata requires care. This resource potentially 
 # manages *all* metadata keys listed within it. If other metadata exists
 # that isn't listed here, Terraform might try to remove it depending on lifecycle.
-# Only include 'enable-oslogin'. Ensure no other process conflicts with this.
+# Only include 'enable-oslogin'. Ensure no other process conflicts with this. 
 resource "google_compute_project_metadata" "os_login_setting" {
   project = var.gcp_project_id
   metadata = {
