@@ -34,8 +34,8 @@ resource "google_compute_instance" "ansible_control_node" {
   allow_stopping_for_update = true
 }
 
-resource "google_compute_firewall" "allow-ssh" {
-    name    = "allow-ssh"
+resource "google_compute_firewall" "allow-ssh-ansible" {
+    name    = "allow-ssh-ansible"
     network = google_compute_network.vpc_ansible.id
     allow {
         protocol = "tcp"
