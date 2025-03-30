@@ -30,7 +30,7 @@ resource "google_compute_instance" "ansible_control_node" {
  # Read the script content from the external file
   metadata_startup_script = file("${path.module}startup-script.sh")
   
-  # Required for deleting instances that have attached disks, useful for lifecycle mgmt
+  # Required for deleting instances that have attached disks, useful for lifecycle mgmt 
   allow_stopping_for_update = true
 }
 
