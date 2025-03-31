@@ -43,8 +43,7 @@ resource "google_secret_manager_secret_iam_member" "ansible_vm_secret_accessor" 
   project   = google_secret_manager_secret.ansible_private_key_secret.project
   secret_id = google_secret_manager_secret.ansible_private_key_secret.secret_id
   role      = "roles/secretmanager.secretAccessor"
-  # Use the Terraform variable for the service account email
-  member    = "serviceAccount:${var.gcp_sa_email}"
+  member  = "user:${var.target_gke_node_user_email}"
 
   # Ensure this depends on the secret resource existing
   depends_on = [google_secret_manager_secret.ansible_private_key_secret]
