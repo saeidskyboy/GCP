@@ -23,6 +23,9 @@ resource "google_secret_manager_secret" "ansible_private_key_secret" {
     managed-by = "terraform"
     purpose    = "ansible-controller-ssh"
   }
+  depends_on = [
+    google_project_service.secretmanager_api
+  ]
 }
 # Add the private key as a secret version
 resource "google_secret_manager_secret_version" "ansible_private_key_version" {

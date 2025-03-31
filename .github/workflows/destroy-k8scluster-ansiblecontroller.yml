@@ -1,14 +1,13 @@
-name: Destroy all configs (clean up)
+name: Destroy Infrastructure (k8s cluster & Ansible Controller)
 
 on:
-  workflow_dispatch:  # Only allow manual triggering for destruction
+  workflow_dispatch:
 
 jobs:
   destroy-infrastructure:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
-      id-token: 'write'
 
     defaults:
       run:
@@ -19,24 +18,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud using SA Key
         id: 'auth'
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
 
       - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v2
         with:
-            project_id: ${{ secrets.GCP_PROJECT_ID }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
-        env:
-            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_ACCESS_KEY }} #SA
 
       - name: Initialize Terraform
         run: terraform init
 
       - name: Destroy Terraform Resources
+        env:
+
+          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
+          TF_VAR_target_gke_node_user_email: ${{ secrets.GKE_NODE_LOGIN_EMAIL }}
         run: terraform destroy -auto-approve
