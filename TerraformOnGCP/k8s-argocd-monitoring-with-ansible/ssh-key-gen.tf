@@ -39,11 +39,12 @@ resource "google_secret_manager_secret_version" "ansible_private_key_version" {
 # --- Permissions for Ansible Controller VM Service Account ---
 
 # Grant the VM's service account access to read the secret version
+# This block is intended to grant permission to read the private key stored in Secret Manager (ansible-ssh-private-key).
 resource "google_secret_manager_secret_iam_member" "ansible_vm_secret_accessor" {
   project   = google_secret_manager_secret.ansible_private_key_secret.project
   secret_id = google_secret_manager_secret.ansible_private_key_secret.secret_id
   role      = "roles/secretmanager.secretAccessor"
-  member  = "user:${var.target_gke_node_user_email}"
+  member    = "serviceAccount:${var.gcp_sa_email}"
 
   # Ensure this depends on the secret resource existing
   depends_on = [google_secret_manager_secret.ansible_private_key_secret]
