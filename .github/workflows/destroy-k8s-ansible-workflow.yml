@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
+      id-token: 'write'
 
     defaults:
       run:
@@ -18,27 +19,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Authenticate to Google Cloud using SA Key
+      - name: Authenticate to Google Cloud
         id: 'auth'
-        uses: 'google-github-actions/auth@v2'
+        uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
-
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Set up Terraform
+      - name: Set up GCP environment variable
+        run: echo "SSH_SA_EMAIL=${{ secrets.SSH_SA_EMAIL }}" >> $GITHUB_ENV
+
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Initialize Terraform
+      - name: Terraform Init
         run: terraform init
-
-      - name: Destroy Terraform Resources
+        
+      - name: Terraform Plan Destroy
+        run: terraform plan -destroy -out=tfplan
         env:
+          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
 
-          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
-          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
-          TF_VAR_target_gke_node_user_email: ${{ secrets.GKE_NODE_LOGIN_EMAIL }}
+      - name: Terraform Destroy
         run: terraform destroy -auto-approve
+        env:
+          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
