@@ -13,7 +13,8 @@ crash.*.log
 #*.tfvars
 override.tf
 override.tf.json
-
+*.json
+TerraformOnGCP/k8s-argocd-monitoring-with-ansible/terraform-sa-key.json
 # Exclude common log and output files
 *.log
 *.out
