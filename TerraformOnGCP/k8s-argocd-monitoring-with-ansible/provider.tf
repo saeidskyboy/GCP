@@ -8,11 +8,11 @@ terraform {
 
   required_providers {
     google = {
-      source = "hashicorp/google"
+      source  = "hashicorp/google"
       version = "5.33.0"
     }
     # since we are going to generate the SSH key pair using Terraform so we need to have the tls provider
-  tls = {
+    tls = {
       source  = "hashicorp/tls"
       version = ">= 4.0"
     }
@@ -20,23 +20,23 @@ terraform {
 }
 
 provider "google" {
-  project     = var.gcp_project_id 
-  region      = "us-cenetral1"
-  }
+  project = var.gcp_project_id
+  region  = "us-cenetral1"
+}
 
 resource "google_project_service" "secretmanager_api" {
   project = var.gcp_project_id
   service = "secretmanager.googleapis.com"
   # Keep API enabled even when Terraform destroys other resources
-  disable_on_destroy = false 
+  disable_on_destroy = false
 }
 
 # Aliased provider - uses specific credentials from the key file
 # Used for resources requiring the specific permissions of terraform@... SA
 provider "google" {
-  alias  = "oslogin_admin"
+  alias   = "oslogin_admin"
   project = var.gcp_project_id
   region  = "us-central1"
   # Explicitly use the credentials file for this aliased provider
-  credentials = file("${path.module}/terraform-sa-key.json") 
+  credentials = "./terraform-sa-key.json"
 }
