@@ -26,6 +26,11 @@ jobs:
           credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+            project_id: ${{ secrets.GCP_PROJECT_ID }} 
+
       - name: Set up GCP environment variable
         run: echo "SSH_SA_EMAIL=${{ secrets.SSH_SA_EMAIL }}" >> $GITHUB_ENV
 
