@@ -40,10 +40,10 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
         id: plan
-        env:
-          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+        # env:
+        #   TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
-        env:
-          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+        # env:
+        #   TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}

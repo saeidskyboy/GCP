@@ -37,10 +37,10 @@ jobs:
         
       - name: Terraform Plan Destroy
         run: terraform plan -destroy -out=tfplan
-        env:
-          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+        # env:
+        #   TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
-        env:
-          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+        # env:
+        #   TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
