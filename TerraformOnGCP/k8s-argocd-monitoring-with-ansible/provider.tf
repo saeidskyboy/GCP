@@ -21,7 +21,7 @@ terraform {
 
 provider "google" {
   project = var.gcp_project_id
-  region  = "us-cenetral1"
+  region  = "us-central1"
 }
 
 resource "google_project_service" "secretmanager_api" {
@@ -38,5 +38,5 @@ provider "google" {
   project = var.gcp_project_id
   region  = "us-central1"
   # Explicitly use the credentials file for this aliased provider
-  credentials = "./terraform-sa-key.json"
+  credentials = file("./terraform-sa-key.json")
 }
