@@ -6,17 +6,30 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-infrastructure:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./TerraformOnGCP/k8s-argocd-monitoring-with-ansible
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up GCP credentials
-        run: |
-          echo '${{ secrets.SSH_SA_KEY }}' > /tmp/sa-key.json
-          echo "GOOGLE_CREDENTIALS=$(cat /tmp/sa-key.json)" >> $GITHUB_ENV
-          echo "SSH_SA_EMAIL=${{ secrets.SSH_SA_EMAIL }}" >> $GITHUB_ENV
+      - name: Authenticate to Google Cloud
+        id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Set up GCP environment variable
+        run: echo "SSH_SA_EMAIL=${{ secrets.SSH_SA_EMAIL }}" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
