@@ -30,13 +30,3 @@ resource "google_project_service" "secretmanager_api" {
   # Keep API enabled even when Terraform destroys other resources
   disable_on_destroy = false
 }
-
-# Aliased provider - uses specific credentials from the key file
-# Used for resources requiring the specific permissions of terraform@... SA
-provider "google" {
-  alias   = "oslogin_admin"
-  project = var.gcp_project_id
-  region  = "us-central1"
-  # Explicitly use the credentials file for this aliased provider
-  credentials = file("./terraform-sa-key.json")
-}

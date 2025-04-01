@@ -1,19 +1,19 @@
-# output "cluster_name" {
-#   value = google_container_cluster.gke-cluster.name
-# }
+output "cluster_name" {
+  value = google_container_cluster.gke-cluster.name
+}
 
-# output "cluster_region" {
-#   value = google_container_cluster.gke-cluster.location
-# }
+output "cluster_region" {
+  value = google_container_cluster.gke-cluster.location
+}
 
+# --- Output the SSH Key Information ---
+output "ssh_public_key_fingerprint" {
+  description = "Fingerprint of the SSH public key uploaded to OS Login"
+  value       = google_os_login_ssh_public_key.ssh_sa_key.fingerprint
+}
 
-# # --- Output the public key for use elsewhere ---
-# output "ansible_public_key_openssh" {
-#   description = "The generated SSH public key for Ansible in OpenSSH format."
-#   value       = tls_private_key.ansible_ssh.public_key_openssh
-# }
-
-# output "ansible_private_key_secret_version_id" {
-#   description = "The resource ID of the secret version holding the private key."
-#   value       = google_secret_manager_secret_version.ansible_private_key_version.id
-# }
+# Output for Debugging and Access
+output "ssh_private_key_secret_name" {
+  value       = google_secret_manager_secret.ansible_private_key_secret.name
+  description = "The name of the Secret Manager secret storing the SSH private key"
+}

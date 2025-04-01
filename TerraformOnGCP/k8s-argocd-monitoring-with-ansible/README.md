@@ -1,1 +1,1 @@
-.
+Instead of trying to add SSH keys for a human user, create a dedicated service account for SSH access

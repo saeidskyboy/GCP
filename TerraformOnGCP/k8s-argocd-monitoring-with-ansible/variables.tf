@@ -7,13 +7,10 @@ variable "gcp_project_id" {
 
 variable "gcp_sa_email" {
   type        = string
-  description = "Email address of the Service Account used by the Ansible Controller VM."
+  description = "Email address of the Service Account used to create and deploy resources."
 }
 
-# ust correspond to an existing Google Account (like a Google Workspace user, a Cloud Identity user, or a GCP Service Account)
-# that you intend for Ansible to use when connecting to the nodes.
-variable "target_gke_node_user_email" {
+variable "ssh_sa_email" {
   type        = string
-  description = "The Google account email (user or service account) that Ansible will use to log into GKE nodes via OS Login."
-  # Example value: "your-google-user@yourdomain.com" or "ansible-runner-sa@your-project.iam.gserviceaccount.com"
+  description = "Email address of the Service Account used to creat ssh keys."
 }
