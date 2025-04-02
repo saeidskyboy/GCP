@@ -14,8 +14,8 @@ resource "google_compute_project_metadata_item" "os_login_enabled" {
 
   # Prevent Terraform from trying to recreate or delete it
   lifecycle {
-    ignore_changes  = [value]
-    prevent_destroy = true
+    ignore_changes = [value]
+    # prevent_destroy = true
   }
 }
 
