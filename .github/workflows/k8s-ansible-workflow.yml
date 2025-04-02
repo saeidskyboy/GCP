@@ -94,3 +94,5 @@ jobs:
           
           # Clean up sensitive files
           rm /tmp/ssh_sa_key.json /tmp/ansible_ssh.pub
+        env:
+          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
