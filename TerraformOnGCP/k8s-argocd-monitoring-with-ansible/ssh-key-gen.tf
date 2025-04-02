@@ -10,7 +10,7 @@ resource "tls_private_key" "ansible_ssh" {
 # Define the secret container
 resource "google_secret_manager_secret" "ansible_private_key_secret" {
   secret_id = "ansible-ssh-private-key"
-  project   = "cloud-2255"
+  project   = var.gcp_project_id
 
   replication {
     user_managed {
@@ -42,7 +42,7 @@ resource "google_secret_manager_secret_version" "ansible_private_key_version" {
 
 # Grant the VM's service account access to read the secret
 resource "google_secret_manager_secret_iam_member" "ansible_vm_secret_accessor" {
-  project   = "cloud-2255" #google_secret_manager_secret.ansible_private_key_secret.project
+  project   = google_secret_manager_secret.ansible_private_key_secret.project
   secret_id = google_secret_manager_secret.ansible_private_key_secret.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${var.gcp_sa_email}"

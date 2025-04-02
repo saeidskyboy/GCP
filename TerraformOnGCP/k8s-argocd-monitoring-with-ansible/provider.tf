@@ -20,12 +20,12 @@ terraform {
 }
 
 provider "google" {
-  project = "cloud-2255"
+  project = var.gcp_project_id
   region  = "us-central1"
 }
 
 resource "google_project_service" "secretmanager_api" {
-  project = "cloud-2255"
+  project = var.gcp_project_id
   service = "secretmanager.googleapis.com"
   # Keep API enabled even when Terraform destroys other resources
   disable_on_destroy = false
