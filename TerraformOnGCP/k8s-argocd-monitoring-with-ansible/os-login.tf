@@ -5,18 +5,24 @@
 # Only include 'enable-oslogin'. Ensure no other process conflicts with this. # File: os-login.tf
 
 # --- Enable OS Login at the Project Level ---
+
+# Check for existing OS Login metadata
+data "google_compute_project_metadata" "existing_metadata" {
+  project = var.gcp_project_id
+}
+
+# Only create OS Login metadata if it doesn't already exist
 resource "google_compute_project_metadata_item" "os_login_enabled" {
+  # Skip creation if it already exists
+  count = contains(keys(data.google_compute_project_metadata.existing_metadata.metadata), "enable-oslogin") ? 0 : 1
+
   project = var.gcp_project_id
   key     = "enable-oslogin"
   value   = "TRUE"
 }
 
-# --- Associate the Generated SSH Key with the Service Account via OS Login ---
-resource "google_os_login_ssh_public_key" "ssh_sa_key" {
-  project = var.gcp_project_id
-  user    = var.ssh_sa_email # Using the email from GitHub secrets
-  key     = tls_private_key.ansible_ssh.public_key_openssh
-  depends_on = [
-    tls_private_key.ansible_ssh
-  ]
+# Output the SSH Key Information for verification
+output "ssh_sa_email" {
+  description = "Email of the service account used for SSH"
+  value       = var.ssh_sa_email
 }

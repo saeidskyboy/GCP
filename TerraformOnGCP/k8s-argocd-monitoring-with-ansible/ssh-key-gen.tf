@@ -6,8 +6,6 @@ resource "tls_private_key" "ansible_ssh" {
 }
 
 # --- Secret Manager setup for Private Key ---
-
-# Define the secret container
 resource "google_secret_manager_secret" "ansible_private_key_secret" {
   secret_id = "ansible-ssh-private-key"
   project   = var.gcp_project_id
@@ -39,8 +37,6 @@ resource "google_secret_manager_secret_version" "ansible_private_key_version" {
 }
 
 # --- Permissions for Ansible Controller VM Service Account ---
-
-# Grant the VM's service account access to read the secret
 resource "google_secret_manager_secret_iam_member" "ansible_vm_secret_accessor" {
   project   = google_secret_manager_secret.ansible_private_key_secret.project
   secret_id = google_secret_manager_secret.ansible_private_key_secret.secret_id
@@ -49,4 +45,16 @@ resource "google_secret_manager_secret_iam_member" "ansible_vm_secret_accessor" 
 
   # Ensure this depends on the secret resource existing
   depends_on = [google_secret_manager_secret.ansible_private_key_secret]
+}
+
+# Output the SSH keys for use in the GitHub workflow
+output "ansible_ssh_public_key" {
+  description = "The SSH public key for Ansible"
+  value       = tls_private_key.ansible_ssh.public_key_openssh
+  sensitive   = false
+}
+
+output "ssh_private_key_secret_name" {
+  value       = google_secret_manager_secret.ansible_private_key_secret.name
+  description = "The name of the Secret Manager secret storing the SSH private key"
 }

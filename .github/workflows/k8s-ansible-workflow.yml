@@ -31,10 +31,7 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-            project_id: ${{ secrets.GCP_PROJECT_ID }} 
-
-      - name: Set up GCP environment variable
-        run: echo "SSH_SA_EMAIL=${{ secrets.SSH_SA_EMAIL }}" >> $GITHUB_ENV
+          project_id: ${{ secrets.GCP_PROJECT_ID }} 
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -56,3 +53,32 @@ jobs:
           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
           TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+      
+      # Step for managing SSH keys with the proper service account credentials
+    
+      # with below stepses we will use existing service account with proper permissions
+      # Only handles the OS Login metadata configuration if it doesn't already exist
+      # Uses a temporary activation of the SSH service account just for the key setup step
+      # Keeps the generation of SSH keys in Terraform (in our existing ssh-key-gen.tf)
+      - name: Setup SSH key for OS Login
+        id: 'ssh-setup'
+        if: success()
+        run: |
+          # Extract the public key from Terraform output
+          SSH_PUBLIC_KEY=$(terraform output -raw ansible_ssh_public_key)
+          
+          # Use the existing SSH service account credentials
+          echo '${{ secrets.SSH_SA_KEY }}' > /tmp/ssh_sa_key.json
+          
+          # Temporarily activate the SSH service account
+          gcloud auth activate-service-account ${{ secrets.SSH_SA_EMAIL }} --key-file=/tmp/ssh_sa_key.json
+          
+          # Add the SSH key to OS Login (this now uses the SSH service account's credentials)
+          echo "$SSH_PUBLIC_KEY" > /tmp/ansible_ssh.pub
+          gcloud compute os-login ssh-keys add --key-file=/tmp/ansible_ssh.pub
+          
+          # Switch back to the original service account
+          gcloud auth activate-service-account --key-file=${{ steps.auth.outputs.credentials_file_path }}
+          
+          # Clean up sensitive files
+          rm /tmp/ssh_sa_key.json /tmp/ansible_ssh.pub
