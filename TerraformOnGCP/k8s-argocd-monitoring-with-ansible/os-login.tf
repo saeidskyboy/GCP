@@ -6,23 +6,21 @@
 
 # --- Enable OS Login at the Project Level ---
 
-# Check for existing OS Login metadata
-data "google_compute_project_metadata" "existing_metadata" {
+# File: os-login.tf
+
+# Get current project metadata
+data "google_compute_project_metadata_item" "os_login" {
   project = var.gcp_project_id
+  key     = "enable-oslogin"
+  # This will fail if the metadata doesn't exist, which we'll handle with try()
 }
 
-# Only create OS Login metadata if it doesn't already exist
+# Create OS Login metadata if it doesn't exist
 resource "google_compute_project_metadata_item" "os_login_enabled" {
-  # Skip creation if it already exists
-  count = contains(keys(data.google_compute_project_metadata.existing_metadata.metadata), "enable-oslogin") ? 0 : 1
+  # Only create if the data lookup failed (metadata doesn't exist)
+  count = try(data.google_compute_project_metadata_item.os_login.value, "") == "" ? 1 : 0
 
   project = var.gcp_project_id
   key     = "enable-oslogin"
   value   = "TRUE"
-}
-
-# Output the SSH Key Information for verification
-output "ssh_sa_email" {
-  description = "Email of the service account used for SSH"
-  value       = var.ssh_sa_email
 }
