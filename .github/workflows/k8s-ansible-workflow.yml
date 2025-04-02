@@ -53,20 +53,20 @@ jobs:
           fi
         continue-on-error: true  # Don't fail the workflow if import fails
         
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-        id: plan
-        env:
-          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
-          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
-          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+      # - name: Terraform Plan
+      #   run: terraform plan -out=tfplan
+      #   id: plan
+      #   env:
+      #     TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      #     TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
+      #     TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        env:
-          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
-          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
-          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+      # - name: Terraform Apply
+      #   run: terraform apply -auto-approve
+      #   env:
+      #     TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      #     TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
+      #     TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
       
       # Step for managing SSH keys with the proper service account credentials
     
