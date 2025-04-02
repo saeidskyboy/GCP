@@ -54,7 +54,7 @@ output "ansible_ssh_public_key" {
   sensitive   = false
 }
 
-output "ssh_private_key_secret_name" {
-  value       = google_secret_manager_secret.ansible_private_key_secret.name
-  description = "The name of the Secret Manager secret storing the SSH private key"
-}
+# output "ssh_private_key_secret_name" {
+#   value       = google_secret_manager_secret.ansible_private_key_secret.name
+#   description = "The name of the Secret Manager secret storing the SSH private key"
+# }
