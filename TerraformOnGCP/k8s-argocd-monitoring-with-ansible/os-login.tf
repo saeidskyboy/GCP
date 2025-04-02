@@ -19,8 +19,8 @@ resource "google_compute_project_metadata_item" "os_login_enabled" {
   }
 }
 
-# Output the SSH service account email for verification
-output "ssh_sa_email" {
-  description = "Email of the service account used for SSH"
-  value       = var.ssh_sa_email
+# Output the SSH service account email for verificationoutput "os_login_status" {
+output "os_login_status" {
+  description = "Status of OS Login enablement"
+  value       = google_compute_project_metadata_item.os_login_enabled.value
 }
