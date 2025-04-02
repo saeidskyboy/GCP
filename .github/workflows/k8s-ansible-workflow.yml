@@ -51,6 +51,10 @@ jobs:
           else
             echo "OS Login not yet enabled, Terraform will create it."
           fi
+        env:
+          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
+          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
         continue-on-error: true  # Don't fail the workflow if import fails
         
       # - name: Terraform Plan
@@ -63,10 +67,10 @@ jobs:
 
       # - name: Terraform Apply
       #   run: terraform apply -auto-approve
-      #   env:
-      #     TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
-      #     TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
-      #     TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+        # env:
+        #   TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+        #   TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
+        #   TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
       
       # Step for managing SSH keys with the proper service account credentials
     
@@ -96,4 +100,5 @@ jobs:
           rm /tmp/ssh_sa_key.json /tmp/ansible_ssh.pub
         env:
           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
           TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
