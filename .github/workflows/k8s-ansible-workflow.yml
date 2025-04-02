@@ -38,6 +38,20 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+
+      - name: Check and import existing OS Login metadata
+        run: |
+          # Check if OS Login is already enabled
+          OS_LOGIN_VALUE=$(gcloud compute project-info describe --project ${{ secrets.GCP_PROJECT_ID }} --format='value(commonInstanceMetadata.items.enable-oslogin)' || echo "")
+          
+          if [ "$OS_LOGIN_VALUE" == "TRUE" ]; then
+            echo "OS Login is already enabled, importing to Terraform state..."
+            # Import the existing metadata into Terraform state
+            terraform import google_compute_project_metadata_item.os_login_enabled ${{ secrets.GCP_PROJECT_ID }}:enable-oslogin || echo "Import failed, but continuing as the resource may already be in the state..."
+          else
+            echo "OS Login not yet enabled, Terraform will create it."
+          fi
+        continue-on-error: true  # Don't fail the workflow if import fails
         
       - name: Terraform Plan
         run: terraform plan -out=tfplan
