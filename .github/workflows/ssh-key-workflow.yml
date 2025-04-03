@@ -80,35 +80,18 @@ jobs:
       # Step 4: Add SSH Key to OS Login Profile of VM SA using SSH Admin SA
       - name: Setup SSH key in OS Login for VM SA
         id: 'ssh-setup'
+# Temporarily modify the 'run:' block for debugging:
         run: |
             echo "Extracting public key..."
-            SSH_PUBLIC_KEY=$(terraform output -raw ansible_ssh_public_key)
-            if [ -z "$SSH_PUBLIC_KEY" ]; then
-            echo "::error::Failed to extract SSH public key from Terraform output."
-            exit 1
-            fi
+            # ... (keep key extraction logic) ...
             echo "$SSH_PUBLIC_KEY" > /tmp/ansible_ssh.pub
-
-            # Identify the TARGET Service Account (the VM's SA)
             TARGET_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
-
-            echo "INFO: Running OS Login command as SSH Admin SA: $(gcloud config get-value account)"
-            echo "INFO: Impersonating TARGET VM SA ($TARGET_SA_EMAIL) to add key from /tmp/ansible_ssh.pub with no expiry (ttl=0)"
-
-            # Use the GA command with impersonation AND the required --ttl flag
-            gcloud compute os-login ssh-keys update --key-file=/tmp/ansible_ssh.pub \
-            --ttl=0 \ # ADDED: Set Time-To-Live (0 means no expiry)
-            --impersonate-service-account="$TARGET_SA_EMAIL" \
-            --project=${{ secrets.GCP_PROJECT_ID }} \
-            || { echo "::error::Failed to update SSH key using impersonation. Ensure SSH Admin SA has roles/compute.osAdminLogin AND roles/iam.serviceAccountTokenCreator on target SA $TARGET_SA_EMAIL, and target SA has roles/compute.osLogin."; exit 1; }
-
-            # Verify the keys for the TARGET service account (also requires impersonation)
-            echo "INFO: Verifying keys for TARGET VM SA: $TARGET_SA_EMAIL by impersonating"
-            gcloud compute os-login ssh-keys list \
-            --impersonate-service-account="$TARGET_SA_EMAIL" \
-            --project=${{ secrets.GCP_PROJECT_ID }}
-
-            # Clean up temporary file
+            echo "INFO: Running simplified gcloud command..."
+            # Run command on one line, no error handling block
+            gcloud compute os-login ssh-keys update --key-file=/tmp/ansible_ssh.pub --ttl=0 --impersonate-service-account="$TARGET_SA_EMAIL" --project=${{ secrets.GCP_PROJECT_ID }}
+            # Check exit code manually if needed: echo $?
+            echo "INFO: Verification step (if previous command succeeded)..."
+            # ... (keep verification logic) ...
             rm /tmp/ansible_ssh.pub
         env:
            TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
