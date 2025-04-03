@@ -81,37 +81,36 @@ jobs:
       - name: Setup SSH key in OS Login for VM SA
         id: 'ssh-setup'
         run: |
-          echo "Extracting public key..."
-          SSH_PUBLIC_KEY=$(terraform output -raw ansible_ssh_public_key)
-          if [ -z "$SSH_PUBLIC_KEY" ]; then
+            echo "Extracting public key..."
+            SSH_PUBLIC_KEY=$(terraform output -raw ansible_ssh_public_key)
+            if [ -z "$SSH_PUBLIC_KEY" ]; then
             echo "::error::Failed to extract SSH public key from Terraform output."
             exit 1
-          fi
-          echo "$SSH_PUBLIC_KEY" > /tmp/ansible_ssh.pub
+            fi
+            echo "$SSH_PUBLIC_KEY" > /tmp/ansible_ssh.pub
 
-          # Identify the TARGET Service Account (the VM's SA)
-          TARGET_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
+            # Identify the TARGET Service Account (the VM's SA)
+            TARGET_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
 
-          echo "INFO: Running OS Login command as SSH Admin SA: $(gcloud config get-value account)"
-          echo "INFO: Impersonating TARGET VM SA ($TARGET_SA_EMAIL) to add key from /tmp/ansible_ssh.pub"
+            echo "INFO: Running OS Login command as SSH Admin SA: $(gcloud config get-value account)"
+            echo "INFO: Impersonating TARGET VM SA ($TARGET_SA_EMAIL) to add key from /tmp/ansible_ssh.pub with no expiry (ttl=0)"
 
-          # Use the GA command with impersonation
-          # Requires SSH Admin SA to have osAdminLogin AND Service Account Token Creator on Target SA
-          gcloud compute os-login ssh-keys update --key-file=/tmp/ansible_ssh.pub \
+            # Use the GA command with impersonation AND the required --ttl flag
+            gcloud compute os-login ssh-keys update --key-file=/tmp/ansible_ssh.pub \
+            --ttl=0 \ # ADDED: Set Time-To-Live (0 means no expiry)
             --impersonate-service-account="$TARGET_SA_EMAIL" \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             || { echo "::error::Failed to update SSH key using impersonation. Ensure SSH Admin SA has roles/compute.osAdminLogin AND roles/iam.serviceAccountTokenCreator on target SA $TARGET_SA_EMAIL, and target SA has roles/compute.osLogin."; exit 1; }
 
-          # Verify the keys for the TARGET service account (also requires impersonation)
-          echo "INFO: Verifying keys for TARGET VM SA: $TARGET_SA_EMAIL by impersonating"
-          gcloud compute os-login ssh-keys list \
+            # Verify the keys for the TARGET service account (also requires impersonation)
+            echo "INFO: Verifying keys for TARGET VM SA: $TARGET_SA_EMAIL by impersonating"
+            gcloud compute os-login ssh-keys list \
             --impersonate-service-account="$TARGET_SA_EMAIL" \
             --project=${{ secrets.GCP_PROJECT_ID }}
 
-          # Clean up temporary file
-          rm /tmp/ansible_ssh.pub
+            # Clean up temporary file
+            rm /tmp/ansible_ssh.pub
         env:
-           # Pass TF Vars needed for terraform output command context
            TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
            TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
            TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
