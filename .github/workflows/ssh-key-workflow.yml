@@ -57,6 +57,7 @@ jobs:
         env:
           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
         continue-on-error: true
 
       # Step 3: Apply Terraform resources (Secrets/IAM) using SSH Admin SA
@@ -72,6 +73,7 @@ jobs:
         env:
           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
 
       # Step 4: Add SSH Key to OS Login Profile of VM SA using SSH Admin SA
       - name: Setup SSH key in OS Login for VM SA
@@ -108,3 +110,4 @@ jobs:
         env:
            TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
            TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+           TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
