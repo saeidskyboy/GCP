@@ -1,0 +1,88 @@
+name: SSH Key DESTROY Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  destroy_ssh_key_resources:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    defaults:
+      run:
+        working-directory: ./TerraformOnGCP/k8s-argocd-monitoring-with-ansible
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud as SSH Admin SA
+        id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.SSH_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
+
+      # Step 2: Remove SSH Key from Target SA's OS Login Profile (Best Effort)
+      # This needs to happen BEFORE terraform destroy removes the key resource from state
+      - name: Remove SSH key from OS Login for VM SA
+        id: 'ssh-remove'
+        run: |
+          echo "Attempting to retrieve public key value from Terraform state..."
+          # Ensure TF vars needed for terraform output context are passed
+          SSH_PUBLIC_KEY=$(terraform output -raw ansible_ssh_public_key)
+
+          if [ -z "$SSH_PUBLIC_KEY" ]; then
+            echo "::warning::Could not retrieve SSH public key from Terraform state (maybe already destroyed?). Skipping OS Login key removal."
+            exit 0 # Exit successfully to allow destroy to continue
+          fi
+          echo "$SSH_PUBLIC_KEY" > /tmp/key_to_remove.pub
+
+          TARGET_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
+          echo "INFO: Running OS Login removal as SSH Admin SA: $(gcloud config get-value account)"
+          echo "INFO: Removing key from /tmp/key_to_remove.pub for TARGET VM SA: $TARGET_SA_EMAIL"
+
+          # Use gcloud beta command to REMOVE key from ANOTHER principal's profile
+          # Requires the authenticated SA (SSH_SA_EMAIL) to have 'roles/compute.osAdminLogin'
+          gcloud beta compute os-login profiles update "$TARGET_SA_EMAIL" \
+            --remove-ssh-key-file=/tmp/key_to_remove.pub \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            || echo "::warning::Failed to remove SSH key using 'profiles update'. Key might not exist on profile or permissions insufficient. Continuing destroy."
+
+          # Clean up temporary file
+          rm /tmp/key_to_remove.pub
+        env:
+           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+           TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
+        continue-on-error: true
+
+      # Step 3: Destroy Terraform Managed Resources
+      - name: Destroy Terraform Secret Mgmt, OS Login Metadata, Key Resources
+        run: |
+          echo "Destroying Terraform resources..."
+          # Destroy resources managed by ssh-key-gen.tf and os-login.tf using targeting
+          # Destroying in a reasonable dependency order (IAM -> Version -> Secret -> Metadata -> TLS Key State)
+          # Using || echo WARN... to see individual failures but attempt all destroys
+          terraform destroy -target=google_secret_manager_secret_iam_member.ansible_vm_secret_accessor -auto-approve || echo "WARN: Failed to destroy iam_member"
+          terraform destroy -target=google_secret_manager_secret_version.ansible_private_key_version -auto-approve || echo "WARN: Failed to destroy secret_version"
+          terraform destroy -target=google_secret_manager_secret.ansible_private_key_secret -auto-approve || echo "WARN: Failed to destroy secret"
+          terraform destroy -target=google_compute_project_metadata_item.os_login_enabled -auto-approve || echo "WARN: Failed to destroy metadata_item"
+          terraform destroy -target=tls_private_key.ansible_ssh -auto-approve || echo "WARN: Failed to destroy tls_private_key (state only)"
+
+          # ALTERNATIVE (if ONLY these resources are defined in this Terraform state/directory):
+          # echo "Attempting blanket destroy for resources in state..."
+          # terraform destroy -auto-approve
+        env:
+          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}

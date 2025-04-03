@@ -1,14 +1,10 @@
 name: SSH Key Management
 
 on:
-    workflow_run:
-      workflows: ["K8s Ansible Workflow"]
-      types:
-        - completed
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
-  install:
+  setup_ssh_key:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -17,75 +13,98 @@ jobs:
     defaults:
       run:
         working-directory: ./TerraformOnGCP/k8s-argocd-monitoring-with-ansible
-  
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set action based on trigger
-        id: set-action
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "ACTION=${{ github.event.inputs.action }}" >> $GITHUB_ENV
-          elif [[ "${{ github.event_name }}" == "workflow_run" ]]; then
-            echo "ACTION=setup" >> $GITHUB_ENV
-          fi
-
-      - name: Authenticate to Google Cloud
+      # Step 1: Authenticate AS THE SSH ADMIN SA
+      # Requires SecretManager Admin & Compute OS Admin Login roles
+      - name: Authenticate to Google Cloud as SSH Admin SA
         id: 'auth'
         uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: ${{ secrets.GCP_ACCESS_KEY }}
+          credentials_json: ${{ secrets.SSH_SA_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }} 
 
-      - name: Setup Terraform (for key generation)
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Init
         run: terraform init
-        
-      - name: Generate SSH Key
-        if: ${{ env.ACTION == 'setup' }}
+
+      # Step 2: Check and Import OS Login Metadata (Best Effort)
+      # Ensures Terraform state is aware if OS Login was enabled outside Terraform
+      - name: Check and import existing OS Login metadata
         run: |
-          # Apply just the key generation part of the Terraform configuration
-          terraform apply -target=tls_private_key.ansible_ssh -auto-approve
-          terraform apply -target=google_secret_manager_secret.ansible_private_key_secret -auto-approve
-          terraform apply -target=google_secret_manager_secret_version.ansible_private_key_version -auto-approve
-          terraform apply -target=google_secret_manager_secret_iam_member.ansible_vm_secret_accessor -auto-approve
+          echo "Checking project metadata for enable-oslogin..."
+          # Use -q flag for quieter output on success, redirect stderr for cleaner existence check
+          OS_LOGIN_VALUE=$(gcloud compute project-info describe --project=${{ secrets.GCP_PROJECT_ID }} --format='value(commonInstanceMetadata.items.enable-oslogin)' 2>/dev/null)
+
+          if [[ "$OS_LOGIN_VALUE" == "TRUE" ]]; then
+            echo "OS Login is enabled (Value: TRUE). Attempting Terraform import..."
+            # Import the existing metadata into Terraform state
+            # Pass required TF_VAR for terraform import context
+            terraform import google_compute_project_metadata_item.os_login_enabled ${{ secrets.GCP_PROJECT_ID }}/enable-oslogin || echo "WARN: Import failed. Resource might already be in state or another issue occurred. Continuing..."
+          elif [[ -n "$OS_LOGIN_VALUE" ]]; then
+             echo "OS Login metadata key exists but is not TRUE (Value: $OS_LOGIN_VALUE). Terraform will manage it if targeted."
+          else
+             echo "OS Login metadata key does not exist. Terraform will manage it if targeted."
+          fi
         env:
           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
-          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
+        continue-on-error: true
 
-      - name: Setup SSH key in OS Login
-        if: ${{ env.ACTION == 'setup' }}
+      # Step 3: Apply Terraform resources (Secrets/IAM) using SSH Admin SA
+      - name: Apply Terraform for Secret Management
+        run: |
+          echo "Applying Terraform resources for SSH key generation and Secret Manager..."
+          # Apply only the resources related to the secret using targeting.
+          terraform apply -target=tls_private_key.ansible_ssh \
+                          -target=google_secret_manager_secret.ansible_private_key_secret \
+                          -target=google_secret_manager_secret_version.ansible_private_key_version \
+                          -target=google_secret_manager_secret_iam_member.ansible_vm_secret_accessor \
+                          -auto-approve
+        env:
+          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
+
+      # Step 4: Add SSH Key to OS Login Profile of VM SA using SSH Admin SA
+      - name: Setup SSH key in OS Login for VM SA
         id: 'ssh-setup'
         run: |
-            # Extract the public key from Terraform output
-            SSH_PUBLIC_KEY=$(terraform output -raw ansible_ssh_public_key)
-            
-            # Create a temporary credentials file for the SSH service account
-            echo '${{ secrets.SSH_SA_KEY }}' > /tmp/ssh_sa_key.json
-            
-            # Clear any previous auth settings
-            gcloud auth revoke --all || true
-            
-            # Use the SSH service account credentials explicitly for this command
-            echo "$SSH_PUBLIC_KEY" > /tmp/ansible_ssh.pub
-            
-            # Run gcloud with explicit credential file, bypassing the active credentials
-            CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=/tmp/ssh_sa_key.json \
-            gcloud compute os-login ssh-keys add --key-file=/tmp/ansible_ssh.pub
-            
-            # Verify the keys
-            CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=/tmp/ssh_sa_key.json \
-            gcloud compute os-login ssh-keys list
-            
-            # Clean up sensitive files
-            rm /tmp/ssh_sa_key.json /tmp/ansible_ssh.pub
+          echo "Extracting public key..."
+          SSH_PUBLIC_KEY=$(terraform output -raw ansible_ssh_public_key)
+          if [ -z "$SSH_PUBLIC_KEY" ]; then
+            echo "::error::Failed to extract SSH public key from Terraform output."
+            exit 1
+          fi
+          echo "$SSH_PUBLIC_KEY" > /tmp/ansible_ssh.pub
+
+          # Identify the TARGET Service Account (the VM's SA)
+          TARGET_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
+
+          echo "INFO: Running OS Login command as SSH Admin SA: $(gcloud config get-value account)"
+          echo "INFO: Adding key from /tmp/ansible_ssh.pub to OS Login profile for TARGET VM SA: $TARGET_SA_EMAIL"
+
+          # Use gcloud beta command to update ANOTHER principal's profile
+          # Requires authenticated SA (SSH_SA_EMAIL) to have 'roles/compute.osAdminLogin'
+          gcloud beta compute os-login profiles update "$TARGET_SA_EMAIL" \
+            --ssh-key-file=/tmp/ansible_ssh.pub \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            || { echo "::error::Failed to add SSH key using 'profiles update'. Ensure SSH Admin SA has roles/compute.osAdminLogin and target SA $TARGET_SA_EMAIL exists and has roles/compute.osLogin."; exit 1; }
+
+          # Verify the keys were added to the TARGET service account's profile
+          echo "INFO: Verifying keys for TARGET VM SA: $TARGET_SA_EMAIL"
+          gcloud beta compute os-login profiles describe "$TARGET_SA_EMAIL" \
+            --project=${{ secrets.GCP_PROJECT_ID }}
+
+          # Clean up temporary file
+          rm /tmp/ansible_ssh.pub
+        env:
+           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+           TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}

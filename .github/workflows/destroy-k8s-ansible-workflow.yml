@@ -39,13 +39,6 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        
-      - name: Terraform Plan Destroy
-        run: terraform plan -destroy -out=tfplan
-        env:
-          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
-          TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
-          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
