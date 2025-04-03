@@ -93,23 +93,25 @@ jobs:
           TARGET_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
 
           echo "INFO: Running OS Login command as SSH Admin SA: $(gcloud config get-value account)"
-          echo "INFO: Adding key from /tmp/ansible_ssh.pub to OS Login profile for TARGET VM SA: $TARGET_SA_EMAIL"
+          echo "INFO: Impersonating TARGET VM SA ($TARGET_SA_EMAIL) to add key from /tmp/ansible_ssh.pub"
 
-          # Use gcloud beta command to update ANOTHER principal's profile
-          # Requires authenticated SA (SSH_SA_EMAIL) to have 'roles/compute.osAdminLogin'
-          gcloud beta compute os-login profiles update "$TARGET_SA_EMAIL" \
-            --ssh-key-file=/tmp/ansible_ssh.pub \
+          # Use the GA command with impersonation
+          # Requires SSH Admin SA to have osAdminLogin AND Service Account Token Creator on Target SA
+          gcloud compute os-login ssh-keys update --key-file=/tmp/ansible_ssh.pub \
+            --impersonate-service-account="$TARGET_SA_EMAIL" \
             --project=${{ secrets.GCP_PROJECT_ID }} \
-            || { echo "::error::Failed to add SSH key using 'profiles update'. Ensure SSH Admin SA has roles/compute.osAdminLogin and target SA $TARGET_SA_EMAIL exists and has roles/compute.osLogin."; exit 1; }
+            || { echo "::error::Failed to update SSH key using impersonation. Ensure SSH Admin SA has roles/compute.osAdminLogin AND roles/iam.serviceAccountTokenCreator on target SA $TARGET_SA_EMAIL, and target SA has roles/compute.osLogin."; exit 1; }
 
-          # Verify the keys were added to the TARGET service account's profile
-          echo "INFO: Verifying keys for TARGET VM SA: $TARGET_SA_EMAIL"
-          gcloud beta compute os-login profiles describe "$TARGET_SA_EMAIL" \
+          # Verify the keys for the TARGET service account (also requires impersonation)
+          echo "INFO: Verifying keys for TARGET VM SA: $TARGET_SA_EMAIL by impersonating"
+          gcloud compute os-login ssh-keys list \
+            --impersonate-service-account="$TARGET_SA_EMAIL" \
             --project=${{ secrets.GCP_PROJECT_ID }}
 
           # Clean up temporary file
           rm /tmp/ansible_ssh.pub
         env:
+           # Pass TF Vars needed for terraform output command context
            TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
            TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
            TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
