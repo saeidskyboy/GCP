@@ -14,7 +14,7 @@ pip3 install ansible
 # echo "### Generating SSH key for Ansible Controller ###"
 # # Define key path (using root's home dir as scripts often run as root)
 # KEY_PATH="/root/.ssh/id_ed25519_ansible_controller"
-# # Use single $ for shell execution
+# # Use single $ for shell execution 
 # KEY_DIR=$(dirname "$KEY_PATH")
 # KEY_COMMENT="ansible-controller"
 
