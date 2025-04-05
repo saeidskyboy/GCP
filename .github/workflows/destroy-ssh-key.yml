@@ -65,6 +65,7 @@ jobs:
         env:
            TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
            TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
+           TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
         continue-on-error: true
 
       # Step 3: Destroy Terraform Managed Resources
@@ -86,3 +87,4 @@ jobs:
         env:
           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_gcp_sa_email: ${{ secrets.GCP_SA_EMAIL }}
+          TF_VAR_ssh_sa_email: ${{ secrets.SSH_SA_EMAIL }}
